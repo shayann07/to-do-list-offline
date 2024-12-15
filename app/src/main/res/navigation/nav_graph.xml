@@ -102,7 +102,16 @@
     <fragment
         android:id="@+id/scheduledFragment"
         android:name="com.shayan.remindersios.ui.fragments.ScheduledFragment"
-        android:label="Scheduled" />
+        android:label="Scheduled">
+        <action
+            android:id="@+id/scheduledFragment_to_taskDetailsFragment"
+            app:destination="@id/taskDetailsFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+
+    </fragment>
 
     <fragment
         android:id="@+id/allFragment"

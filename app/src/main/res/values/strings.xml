@@ -56,8 +56,9 @@
     <string name="clear">•   Clear</string>
     <string name="scheduled">Scheduled</string>
     <string name="abc">Scheduled</string>
-    <string name="notes_not_available">Notes not available</string>
-    <string name="time_not_available"> </string>
+    <string name="not_available">Not available</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
     <string-array name="months">
         <item>January</item>
@@ -73,6 +74,5 @@
         <item>November</item>
         <item>December</item>
     </string-array>
-
 
 </resources>

@@ -3,6 +3,7 @@ package com.shayan.remindersios.ui.fragments
 
 import android.icu.util.Calendar
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -39,6 +40,7 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d("ScheduledFragment", "onViewCreated called")
 
         binding.backToHomeBtn.setOnClickListener {
             requireActivity().onBackPressed()
@@ -49,11 +51,12 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
         viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
 
-        viewModel.fetchScheduledTasks()
 
         viewModel.tasksByMonth.observe(viewLifecycleOwner) { tasksByMonth ->
+            Log.d("ScheduledFragment", "Observed tasksByMonth: $tasksByMonth")
             updateRecyclerViews(tasksByMonth)
         }
+        viewModel.fetchScheduledTasks()
     }
 
     private fun setupMonthHeaders() {
@@ -84,7 +87,11 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             val textViewId =
                 resources.getIdentifier("tv${i + 1}", "id", requireContext().packageName)
             val textView = binding.root.findViewById<TextView>(textViewId)
-            textView?.text = text
+            if (textView != null) {
+                textView.text = text
+            } else {
+                Log.e("ScheduledFragment", "Missing TextView for ID: tv${i + 1}")
+            }
         }
     }
 
@@ -119,13 +126,7 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     private fun createTaskAdapter(): TaskAdapter {
         return TaskAdapter(completionListener = this,
             itemClickListener = object : TaskAdapter.OnItemClickListener {
-                override fun onItemClick(task: Tasks) {
-                    // Navigate to TaskDetailsFragment
-                    val bundle = Bundle().apply {
-                        putParcelable("task", task) // Pass the task object
-                    }
-                    findNavController().navigate(R.id.taskDetailsFragment, bundle)
-                }
+                override fun onItemClick(task: Tasks) {}
             },
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
@@ -137,6 +138,11 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     }
 
     private fun updateRecyclerViews(tasksByMonth: Map<String, List<Tasks>>) {
+        if (tasksByMonth.isEmpty()) {
+            Log.d("ScheduledFragment", "No tasks available for any month")
+            return
+        }
+
         val calendar = Calendar.getInstance()
         val months = listOf(
             "January",
@@ -161,12 +167,29 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
         monthsWithYears.forEachIndexed { index, monthYear ->
             val tasksForMonth = tasksByMonth[monthYear] ?: emptyList()
+            Log.d("ScheduledFragment", "Month: $monthYear, Tasks: ${tasksForMonth.size}")
+
             if (index < adapters.size) {
                 adapters[index].submitList(tasksForMonth)
+                Log.d(
+                    "ScheduledFragment",
+                    "Submitted list for $monthYear: ${tasksForMonth.size} tasks"
+                )
                 recyclerViews[index].visibility =
                     if (tasksForMonth.isEmpty()) View.GONE else View.VISIBLE
+
+                // Log the visibility state of the RecyclerView
+                if (recyclerViews[index].visibility == View.VISIBLE) {
+                    Log.d("ScheduledFragment", "RecyclerView for $monthYear is VISIBLE")
+                } else {
+                    Log.d("ScheduledFragment", "RecyclerView for $monthYear is GONE")
+                }
+
+            } else {
+                Log.e("ScheduledFragment", "Adapter index out of bounds: $index")
             }
         }
+        Log.d("ScheduledFragment", "Updating RecyclerViews with tasks: $tasksByMonth")
     }
 
     override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
@@ -184,6 +207,11 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             putParcelable("task", task)
         }
         findNavController().navigate(R.id.taskDetailsFragment, bundle)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.fetchScheduledTasks()
     }
 
     override fun onDestroyView() {

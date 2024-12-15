@@ -1,5 +1,6 @@
 package com.shayan.remindersios.adapters
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,8 @@ class TaskAdapter(
         val task = getItem(position)
         val isLastItem = position == currentList.size - 1
         holder.bind(task, completionListener, itemClickListener, deleteClickListener, isLastItem)
+        Log.d("TaskAdapter", "Binding task: ${task.title}")
+
     }
 
     class TaskViewHolder(private val binding: ReminderItemsBinding) :
@@ -49,7 +52,7 @@ class TaskAdapter(
                 )
             } else {
                 binding.fetchedTaskTime.text =
-                    binding.root.context.getString(R.string.time_not_available)
+                    binding.root.context.getString(R.string.not_available)
                 binding.fetchedTaskTime.setTextColor(
                     ContextCompat.getColor(binding.root.context, R.color.orange)
                 )

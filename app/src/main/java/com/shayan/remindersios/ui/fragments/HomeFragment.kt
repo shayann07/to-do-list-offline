@@ -16,6 +16,8 @@ import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentHomeBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
+import java.text.NumberFormat
+import java.util.Locale
 import kotlin.reflect.KMutableProperty0
 
 class HomeFragment : Fragment() {
@@ -54,7 +56,6 @@ class HomeFragment : Fragment() {
             fetchTotalTasks()
         }
     }
-
 
     private fun initializeViewModel() {
         viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
@@ -171,7 +172,8 @@ class HomeFragment : Fragment() {
     }
 
     private fun updateTaskCount(textView: TextView, count: Int) {
-        textView.text = count.toString()
+        val formattedNumber = NumberFormat.getNumberInstance(Locale.getDefault()).format(count)
+        textView.text = formattedNumber
     }
 
     private fun setupClickListeners() {

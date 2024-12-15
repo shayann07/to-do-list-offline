@@ -2,11 +2,7 @@ package com.shayan.remindersios.ui.viewmodel
 
 import android.app.Application
 import android.util.Log
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.asLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.data.repository.Repository
 import com.shayan.remindersios.utils.AlarmManagerHelper
@@ -18,7 +14,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
 
     private val repository = Repository(application)
 
-    // Task counts as LiveData
+    // LiveData for task counts
     val todayTaskCount: LiveData<Int>
     val scheduledTasksCount: LiveData<Int>
     val flaggedTasksCount: LiveData<Int>
@@ -27,11 +23,8 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
     val totalTaskCount: LiveData<Int>
 
     init {
-        val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-        val calendar = Calendar.getInstance()
-        calendar.add(Calendar.MONTH, 12)
-        calendar.set(Calendar.DAY_OF_MONTH, calendar.getActualMaximum(Calendar.DAY_OF_MONTH))
-        val endDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        val todayDate = getCurrentDate()
+        val endDate = getFutureDate(12)
 
         todayTaskCount = repository.getTodayTaskCountFlow(todayDate).asLiveData()
         scheduledTasksCount = repository.getScheduledTasksCountFlow(todayDate, endDate).asLiveData()
@@ -41,140 +34,99 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         totalTaskCount = repository.getTotalTasksCountFlow().asLiveData()
     }
 
-    // Task lists
+    // LiveData for task details
     val tasksList = MutableLiveData<List<Tasks>?>()
     val searchQueryResult = MutableLiveData<List<Tasks>>()
     val taskCreationStatus = MutableLiveData<Boolean>()
     val morningTasksLiveData = MutableLiveData<List<Tasks>>()
     val afternoonTasksLiveData = MutableLiveData<List<Tasks>>()
     val tonightTasksLiveData = MutableLiveData<List<Tasks>>()
-    val tasksByMonth = MutableLiveData<Map<String, List<Tasks>>>()
+    val tasksByMonth = MutableLiveData<Map<String, List<Tasks>>>(emptyMap())
     val flaggedTasks = MutableLiveData<List<Tasks>>()
     val incompleteTasks = MutableLiveData<List<Tasks>>()
     val completedTasks = MutableLiveData<List<Tasks>>()
     val totalTasks = MutableLiveData<List<Tasks>>()
     val taskDeletionStatus = MutableLiveData<Boolean>()
+
     private var currentSearchQuery: String = ""
 
+    // Fetch tasks by title
     fun fetchTasksByTitle(title: String) {
         currentSearchQuery = title
         viewModelScope.launch {
-            try {
-                val tasks = repository.getTasksByTitle(title)
-                searchQueryResult.postValue(tasks)
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to fetch tasks: ${e.message}")
+            handleRepositoryCall({ repository.getTasksByTitle(title) }) {
+                searchQueryResult.postValue(it)
             }
         }
     }
 
+    // Fetch today's tasks and categorize them by time
     fun fetchTodayTasks() {
-        val todayDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val todayDate = getCurrentDate()
         viewModelScope.launch {
-            try {
-                val tasks = repository.getTasksForToday(todayDate)
+            handleRepositoryCall({ repository.getTasksForToday(todayDate) }) { tasks ->
                 tasksList.postValue(tasks)
 
-                val (morning, afternoon, tonight) = categorizeTasksByTime (tasks)
+                val (morning, afternoon, tonight) = categorizeTasksByTime(tasks)
                 morningTasksLiveData.postValue(morning)
                 afternoonTasksLiveData.postValue(afternoon)
                 tonightTasksLiveData.postValue(tonight)
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to fetch tasks for today: ${e.message}")
             }
         }
     }
 
+    // Fetch scheduled tasks grouped by month
     fun fetchScheduledTasks() {
         viewModelScope.launch {
-            try {
-                val calendar = Calendar.getInstance()
-                val startYear = calendar.get(Calendar.YEAR)
-                val startMonth = calendar.get(Calendar.MONTH)
-
-                val startDate = "${startYear}-${String.format("%02d", startMonth + 1)}-01"
-                calendar.add(Calendar.MONTH, 12)
-                val endDate = "${calendar.get(Calendar.YEAR)}-${
-                    String.format(
-                        "%02d", calendar.get(Calendar.MONTH) + 1
-                    )
-                }-01"
-
-                val tasks = repository.getScheduledTasks(startDate, endDate)
-
-                // Group tasks by "MMMM yyyy" for the next 12 months
+            val startDate = getCurrentDate()
+            val endDate = getFutureDate(12)
+            handleRepositoryCall({ repository.getScheduledTasks(startDate, endDate) }) { tasks ->
                 val groupedTasks = tasks.groupBy { task ->
-                    SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(
-                        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(
-                            task.date ?: ""
-                        )!!
-                    )
+                    try {
+                        task.date?.let {
+                            SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(
+                                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!
+                            )
+                        } ?: "Unknown"
+                    } catch (e: Exception) {
+                        Log.e("TaskViewModel", "Error parsing date for task: ${task.roomTaskId}", e)
+                        "Unknown"
+                    }
                 }
+                Log.d("TaskViewModel", "Tasks fetched and grouped by month: $groupedTasks")
                 tasksByMonth.postValue(groupedTasks)
-            } catch (e: Exception) {
-                Log.e(
-                    "ViewModel", "Failed to fetch tasks for the next 12 months: ${e.message}"
-                )
             }
         }
     }
 
+    // Fetch flagged tasks
     fun fetchFlaggedTasks() {
-        viewModelScope.launch {
-            try {
-                val tasks = repository.getFlaggedTasks()
-                flaggedTasks.postValue(tasks)
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to fetch flagged tasks: ${e.message}")
-            }
-        }
+        fetchTaskData(repository::getFlaggedTasks, flaggedTasks, "flagged")
     }
 
+    // Fetch incomplete tasks
     fun fetchIncompleteTasks() {
-        viewModelScope.launch {
-            try {
-                val tasks = repository.getIncompleteTasks()
-                incompleteTasks.postValue(tasks)
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to fetch incomplete tasks: ${e.message}")
-            }
-        }
+        fetchTaskData(repository::getIncompleteTasks, incompleteTasks, "incomplete")
     }
 
+    // Fetch completed tasks
     fun fetchCompletedTasks() {
-        viewModelScope.launch {
-            try {
-                val tasks = repository.getCompletedTasks()
-                completedTasks.postValue(tasks)
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to fetch completed tasks: ${e.message}")
-            }
-        }
+        fetchTaskData(repository::getCompletedTasks, completedTasks, "completed")
     }
 
+    // Fetch total tasks
     fun fetchTotalTasks() {
-        viewModelScope.launch {
-            try {
-                val tasks = repository.getTotalTasks()
-                totalTasks.postValue(tasks)
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to fetch completed tasks: ${e.message}")
-            }
-        }
+        fetchTaskData(repository::getTotalTasks, totalTasks, "total")
     }
 
+    // Toggle task completion status
     fun toggleTaskCompletion(
         roomTaskId: Int, isCompleted: Boolean, onCompletion: (Boolean, String?) -> Unit
     ) {
         viewModelScope.launch {
             try {
                 repository.updateLocalTaskCompletion(roomTaskId, isCompleted)
-                fetchTodayTasks()
-                fetchScheduledTasks()
-                fetchIncompleteTasks()
-                fetchFlaggedTasks()
-                fetchTotalTasks()
-                fetchCompletedTasks()
+                fetchAllTaskData()
                 onCompletion(true, "Task successfully updated!")
             } catch (e: Exception) {
                 onCompletion(false, "Unexpected error: ${e.message}")
@@ -182,6 +134,7 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    // Save a new task
     fun saveTask(task: Tasks) {
         viewModelScope.launch {
             try {
@@ -191,42 +144,52 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 AlarmManagerHelper.scheduleTaskReminder(getApplication(), updatedTask)
             } catch (e: Exception) {
                 taskCreationStatus.postValue(false)
-                Log.e("ViewModel", "Failed to save task: ${e.message}")
+                logError("Failed to save task", e)
             }
         }
     }
 
+    // Delete a task
     fun deleteTask(roomTaskId: Int) {
         viewModelScope.launch {
-            try {
-                repository.deleteTaskFromRoom(roomTaskId)
-                fetchTodayTasks()
-                fetchScheduledTasks()
-                fetchIncompleteTasks()
-                fetchFlaggedTasks()
-                fetchTotalTasks()
-                fetchCompletedTasks()
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to delete task: ${e.message}")
+            handleRepositoryCall({ repository.deleteTaskFromRoom(roomTaskId) }) {
+                fetchAllTaskData()
             }
         }
     }
 
+    // Undo task deletion
     fun undoDeleteTask(task: Tasks) {
         viewModelScope.launch {
-            try {
-                repository.saveTasksToRoom(task)
+            handleRepositoryCall({ repository.saveTasksToRoom(task) }) {
                 fetchTodayTasks()
-            } catch (e: Exception) {
-                Log.e("ViewModel", "Failed to restore task: ${e.message}")
             }
         }
     }
 
+    // Clear all completed tasks
+    fun deleteCompletedTasks() {
+        viewModelScope.launch {
+            handleRepositoryCall({ repository.clearAllCompletedTasks() }) {
+                fetchCompletedTasks()
+                taskDeletionStatus.postValue(true)
+            }
+        }
+    }
+
+    // Clear all tasks
+    fun clearAllTasks() {
+        viewModelScope.launch {
+            repository.clearAllTasks()
+        }
+    }
+
+    // Categorize tasks by time (morning, afternoon, tonight)
     private fun categorizeTasksByTime(tasks: List<Tasks>): Triple<List<Tasks>, List<Tasks>, List<Tasks>> {
         val morning = mutableListOf<Tasks>()
         val afternoon = mutableListOf<Tasks>()
         val tonight = mutableListOf<Tasks>()
+
         tasks.forEach { task ->
             val time = task.time?.split(":")?.firstOrNull()?.toIntOrNull() ?: return@forEach
             when (time) {
@@ -238,23 +201,49 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         return Triple(morning, afternoon, tonight)
     }
 
-    fun deleteCompletedTasks() {
+    // Fetch all task-related data
+    private fun fetchAllTaskData() {
+        fetchTodayTasks()
+        fetchScheduledTasks()
+        fetchIncompleteTasks()
+        fetchFlaggedTasks()
+        fetchCompletedTasks()
+        fetchTotalTasks()
+    }
+
+    // Fetch task data with error handling
+    private fun <T> fetchTaskData(
+        fetcher: suspend () -> T, liveData: MutableLiveData<T>, label: String
+    ) {
         viewModelScope.launch {
-            try {
-                repository.clearAllCompletedTasks()
-                fetchCompletedTasks()
-                taskDeletionStatus.postValue(true)
-            } catch (e: Exception) {
-                taskDeletionStatus.postValue(false)
-                Log.e("ViewModel", "Failed to delete completed tasks: ${e.message}")
+            handleRepositoryCall(fetcher) {
+                liveData.postValue(it)
             }
         }
     }
 
-    fun clearAllTasks() {
-        viewModelScope.launch {
-            repository.clearAllTasks()
+    // Handle repository calls with error handling
+    private suspend fun <T> handleRepositoryCall(call: suspend () -> T, onSuccess: (T) -> Unit) {
+        try {
+            val result = call()
+            onSuccess(result)
+        } catch (e: Exception) {
+            logError("Error during repository call", e)
         }
     }
 
+    // Log errors with consistent format
+    private fun logError(message: String, e: Exception) {
+        Log.e("TaskViewModel", "$message: ${e.message}")
+    }
+
+    // Get the current date in yyyy-MM-dd format
+    private fun getCurrentDate(): String =
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+
+    // Get a future date (months ahead) in yyyy-MM-dd format
+    private fun getFutureDate(monthsAhead: Int): String {
+        val calendar = Calendar.getInstance().apply { add(Calendar.MONTH, monthsAhead) }
+        return SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+    }
 }

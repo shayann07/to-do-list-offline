@@ -92,11 +92,6 @@ class Repository(context: Context) {
 
     fun getTotalTasksCountFlow(): Flow<Int> = taskDao.getTotalTaskCount()
 
-    // Update a task
-    suspend fun updateTask(task: Tasks) = withContext(Dispatchers.IO) {
-        taskDao.updateTask(task)
-    }
-
     // Delete task by ID
     suspend fun deleteTaskFromRoom(roomTaskId: Int) =
         withContext(Dispatchers.IO) { taskDao.deleteTaskByRoomTaskId(roomTaskId) }
