@@ -1,0 +1,258 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:background="@color/black"
+    tools:context=".ui.fragments.NewReminderFragment">
+
+    <ImageButton
+        android:id="@+id/backToHomeBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="9dp"
+        android:background="@null"
+        android:contentDescription="back"
+        android:padding="8dp"
+        android:src="@drawable/arrow_left" />
+
+    <TextView
+        android:id="@+id/details_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="4dp"
+        android:fontFamily="@font/roboto_bold"
+        android:padding="8dp"
+        android:text="@string/details"
+        android:textColor="@color/white"
+        android:textSize="18sp" />
+
+    <!-- Details Container -->
+    <LinearLayout
+        android:id="@+id/details_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/details_text"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="24dp"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/textview_roundedcorners"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"
+            android:autofillHints="title"
+            android:background="@null"
+            android:fontFamily="@font/roboto_regular"
+            android:hint="@string/title"
+            android:padding="8dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/darker_gray"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tv_notes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"
+            android:autofillHints="notes"
+            android:background="@null"
+            android:fontFamily="@font/roboto_regular"
+            android:gravity="top"
+            android:hint="@string/notes"
+            android:minHeight="100dp"
+            android:padding="8dp"
+            android:scrollHorizontally="false"
+            android:textColor="@color/white"
+            android:textColorHint="@color/darker_gray"
+            android:textSize="16sp" />
+    </LinearLayout>
+    <!-- Options Section -->
+    <GridLayout
+        android:id="@+id/gridLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_marginHorizontal="16dp"
+        android:animateLayoutChanges="true"
+        android:columnCount="2"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:rowCount="4">
+
+        <!-- A1: Date Icon & Button -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/date_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/schedule_icon" />
+
+            <TextView
+                android:id="@+id/date_button"
+                style="@style/ItemTextStyle"
+                android:layout_marginStart="8dp"
+                android:text="@string/date"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- A2: Date TextView -->
+        <TextView
+            android:id="@+id/tv_date"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_vertical"
+            android:fontFamily="@font/roboto_regular"
+            android:padding="8dp"
+            android:text=""
+            android:textColor="@color/light_blue"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- B1: Time Icon & Button -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/time_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/_994342_alarm_clock_hour_time_watch_icon" />
+
+            <TextView
+                android:id="@+id/time_button"
+                style="@style/ItemTextStyle"
+
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/time"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- B2: Time TextView -->
+        <TextView
+            android:id="@+id/tv_time"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_vertical"
+            android:fontFamily="@font/roboto_regular"
+            android:padding="8dp"
+            android:text=""
+            android:textColor="@color/light_blue"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- C1: Flag Icon & Button -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/flag_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/flagged_icon" />
+
+            <TextView
+                android:id="@+id/flag_button"
+                style="@style/ItemTextStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/flagged"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- C2: Flag TextView -->
+        <TextView
+            android:id="@+id/tv_flag"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_vertical"
+            android:fontFamily="@font/roboto_regular"
+            android:padding="8dp"
+            android:text=""
+            android:textColor="@color/light_blue"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- D1: Completed Icon & Button -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:animateLayoutChanges="true"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/completed_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center_vertical"
+                android:src="@drawable/complete_icon" />
+
+            <TextView
+                android:id="@+id/completed_text"
+                style="@style/ItemTextStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/completed"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- D2: Completed TextView -->
+        <TextView
+            android:id="@+id/tv_completed"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_columnWeight="1"
+            android:layout_gravity="center_vertical"
+            android:fontFamily="@font/roboto_regular"
+            android:padding="8dp"
+            android:text=""
+            android:textColor="@color/light_blue"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+    </GridLayout>
+</RelativeLayout>

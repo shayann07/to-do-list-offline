@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/hostFragment">
+
+    <fragment
+        android:id="@+id/hostFragment"
+        android:name="com.shayan.remindersios.ui.fragments.HostFragment"
+        android:label="Host">
+
+        <action
+            android:id="@+id/hostFragment_to_homeFragment"
+            app:destination="@+id/homeFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.shayan.remindersios.ui.fragments.HomeFragment"
+        android:label="Home">
+
+        <action
+            android:id="@+id/homeFragment_to_newReminderFragment"
+            app:destination="@id/newReminderFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_todayFragment"
+            app:destination="@id/todayFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_scheduledFragment"
+            app:destination="@id/scheduledFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_allFragment"
+            app:destination="@id/allFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_flaggedFragment"
+            app:destination="@id/flaggedFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_completedFragment"
+            app:destination="@id/completedFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_iCloudFragment"
+            app:destination="@id/iCloudFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+        <action
+            android:id="@+id/homeFragment_to_outlookFragment"
+            app:destination="@id/outlookFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/newReminderFragment"
+        android:name="com.shayan.remindersios.ui.fragments.NewReminderFragment"
+        android:label="New Reminder">
+        <action
+            android:id="@+id/newReminderFragment_to_homeFragment"
+            app:destination="@+id/homeFragment"
+            app:enterAnim="@android:anim/fade_in"
+            app:exitAnim="@android:anim/fade_out"
+            app:popEnterAnim="@android:anim/fade_in"
+            app:popExitAnim="@android:anim/fade_out" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/todayFragment"
+        android:name="com.shayan.remindersios.ui.fragments.TodayFragment"
+        android:label="Today" />
+
+    <fragment
+        android:id="@+id/scheduledFragment"
+        android:name="com.shayan.remindersios.ui.fragments.ScheduledFragment"
+        android:label="Scheduled" />
+
+    <fragment
+        android:id="@+id/allFragment"
+        android:name="com.shayan.remindersios.ui.fragments.AllFragment"
+        android:label="All" />
+
+    <fragment
+        android:id="@+id/flaggedFragment"
+        android:name="com.shayan.remindersios.ui.fragments.FlaggedFragment"
+        android:label="Flagged" />
+
+    <fragment
+        android:id="@+id/completedFragment"
+        android:name="com.shayan.remindersios.ui.fragments.CompletedFragment"
+        android:label="Completed" />
+
+    <fragment
+        android:id="@+id/iCloudFragment"
+        android:name="com.shayan.remindersios.ui.fragments.iCloudFragment"
+        android:label="iCloud" />
+
+    <fragment
+        android:id="@+id/outlookFragment"
+        android:name="com.shayan.remindersios.ui.fragments.OutlookFragment"
+        android:label="Outlook" />
+
+    <fragment
+        android:id="@+id/taskDetailsFragment"
+        android:name="com.shayan.remindersios.ui.fragments.TaskDetailsFragment"
+        android:label="Task Details" />
+</navigation>

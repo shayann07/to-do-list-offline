@@ -1,0 +1,250 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:animateLayoutChanges="true"
+    android:background="@color/black"
+    tools:context=".ui.fragments.NewReminderFragment">
+
+    <!-- Cancel Button -->
+    <TextView
+        android:id="@+id/cancel_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginVertical="4dp"
+        android:fontFamily="@font/roboto_regular"
+        android:padding="8dp"
+        android:text="@string/cancel"
+        android:textColor="@color/light_blue"
+        android:textSize="16sp" />
+
+    <!-- New Reminder Title -->
+    <TextView
+        android:id="@+id/new_reminder_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginVertical="4dp"
+        android:fontFamily="@font/roboto_bold"
+        android:padding="8dp"
+        android:text="@string/new_reminder"
+        android:textColor="@color/white"
+        android:textSize="16sp" />
+
+    <!-- Add Button -->
+    <TextView
+        android:id="@+id/add_task_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginVertical="4dp"
+        android:fontFamily="@font/roboto_regular"
+        android:padding="8dp"
+        android:text="@string/add"
+        android:textColor="@color/light_blue"
+        android:textSize="16sp" />
+
+    <!-- Details Container -->
+    <LinearLayout
+        android:id="@+id/details_container"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/new_reminder_text"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginTop="12dp"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/textview_roundedcorners"
+        android:orientation="vertical">
+
+        <EditText
+            android:id="@+id/title_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"
+            android:autofillHints="title"
+            android:background="@null"
+            android:fontFamily="@font/roboto_regular"
+            android:hint="@string/title"
+            android:inputType="textShortMessage"
+            android:padding="8dp"
+            android:textColor="@color/white"
+            android:textColorHint="@color/darker_gray"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/notes_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="4dp"
+            android:autofillHints="notes"
+            android:background="@null"
+            android:fontFamily="@font/roboto_regular"
+            android:gravity="top"
+            android:hint="@string/notes"
+            android:inputType="textMultiLine"
+            android:minHeight="100dp"
+            android:padding="8dp"
+            android:scrollHorizontally="false"
+            android:textColor="@color/white"
+            android:textColorHint="@color/darker_gray"
+            android:textSize="16sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@id/details_container"
+        android:animateLayoutChanges="true"
+        android:fillViewport="true">
+
+        <!-- Options Section -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical">
+
+            <!-- Date Section -->
+            <RelativeLayout
+                android:id="@+id/date_container"
+                style="@style/ContainerStyle"
+                android:animateLayoutChanges="true">
+
+                <ImageView
+                    android:id="@+id/date_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentTop="true"
+                    android:layout_marginStart="8dp"
+                    android:layout_marginTop="12dp"
+                    android:src="@drawable/schedule_icon" />
+
+                <TextView
+                    android:id="@+id/date_button"
+                    style="@style/ItemTextStyle"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@+id/date_icon"
+                    android:text="@string/date" />
+
+                <TextView
+                    android:id="@+id/date_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toStartOf="@+id/date_switch"
+                    android:fontFamily="@font/roboto_regular"
+                    android:text=""
+                    android:textColor="@color/light_blue"
+                    android:textSize="16sp"
+                    android:visibility="visible" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/date_switch"
+                    style="@style/SwitchStyle"
+                    android:layout_alignParentEnd="true" />
+
+                <LinearLayout
+                    android:id="@+id/calendar_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/date_button"
+                    android:animateLayoutChanges="true"
+                    android:background="@null"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <CalendarView
+                        android:id="@+id/calendar_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:theme="@style/DarkCalendarViewTheme" />
+
+                </LinearLayout>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/time_container"
+                style="@style/ContainerStyle"
+                android:animateLayoutChanges="true">
+
+                <!-- Time Icon -->
+                <ImageView
+                    android:id="@+id/time_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/_994342_alarm_clock_hour_time_watch_icon" />
+
+                <!-- Time Label -->
+                <TextView
+                    android:id="@+id/time_button"
+                    style="@style/ItemTextStyle"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@id/time_icon"
+                    android:text="@string/time" />
+
+                <!-- Time Display -->
+                <TextView
+                    android:id="@+id/time_display"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="8dp"
+                    android:layout_toStartOf="@+id/time_switch"
+                    android:fontFamily="@font/roboto_regular"
+                    android:text=""
+                    android:textColor="@color/light_blue"
+                    android:textSize="16sp"
+                    android:visibility="visible" />
+
+                <!-- Time Switch -->
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/time_switch"
+                    style="@style/SwitchStyle"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true" />
+            </RelativeLayout>
+
+            <!-- Flag Section -->
+            <RelativeLayout
+                android:id="@+id/flag_container"
+                style="@style/ContainerStyle"
+                android:animateLayoutChanges="true">
+
+                <ImageView
+                    android:id="@+id/flag_icon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_alignParentStart="true"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/flagged_icon" />
+
+                <TextView
+                    android:id="@+id/flag_button"
+                    style="@style/ItemTextStyle"
+                    android:layout_marginStart="8dp"
+                    android:layout_toEndOf="@+id/flag_icon"
+                    android:text="@string/flag" />
+
+                <androidx.appcompat.widget.SwitchCompat
+                    android:id="@+id/flag_switch"
+                    style="@style/SwitchStyle"
+                    android:layout_alignParentEnd="true" />
+            </RelativeLayout>
+
+        </LinearLayout>
+    </ScrollView>
+</RelativeLayout>

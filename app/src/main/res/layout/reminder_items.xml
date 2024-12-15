@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="4dp"
+    android:animateLayoutChanges="true"
+    android:background="@color/black"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="8dp"
+        android:animateLayoutChanges="true"
+        android:orientation="horizontal"
+        android:padding="8dp">
+
+
+        <!-- RadioButton for selection -->
+        <RadioButton
+            android:id="@+id/radio_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:animateLayoutChanges="true"
+            android:buttonTint="@color/darker_gray" />
+
+        <!-- Container for task details -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:animateLayoutChanges="true"
+            android:orientation="vertical"
+            android:paddingStart="12dp">
+
+            <!-- Task title -->
+            <TextView
+                android:id="@+id/fetched_task_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:scrollHorizontally="true"
+                android:text="@string/reminder_title"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <!-- Container for additional task info -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:animateLayoutChanges="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <!-- App name or metadata -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp"
+                    android:paddingVertical="4dp"
+                    android:text="@string/app_name"
+                    android:textColor="#84FFFFFF"
+                    android:textSize="14sp" />
+
+                <!-- Task time -->
+                <TextView
+                    android:id="@+id/fetched_task_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:paddingHorizontal="2dp"
+                    android:paddingVertical="4dp"
+                    android:text="@string/_9_00_am"
+                    android:textColor="@color/light_blue"
+                    android:textSize="14sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageButton
+            android:id="@+id/delete_task"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginEnd="8dp"
+            android:background="@null"
+            android:contentDescription="Delete"
+            android:src="@drawable/icons8_delete" />
+    </LinearLayout>
+
+    <View
+        android:id="@+id/recycler_view_divider"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginStart="70dp"
+        android:background="@color/my_gray" />
+</LinearLayout>
