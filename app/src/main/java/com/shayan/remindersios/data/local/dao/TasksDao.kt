@@ -46,7 +46,7 @@ interface TasksDao {
     @Query("SELECT COUNT(*) FROM tasks WHERE date = :todayDate AND isCompleted = 0")
     fun getTodayTaskCount(todayDate: String): Flow<Int>
 
-    @Query("SELECT * FROM tasks WHERE date BETWEEN :startDate AND :endDate AND isCompleted = 0 ORDER BY timestamp ASC")
+    @Query("SELECT * FROM tasks WHERE date BETWEEN :startDate AND :endDate AND isCompleted = 0")
     suspend fun getTasksForDateRange(startDate: String, endDate: String): List<Tasks>
 
     @Query("SELECT COUNT(*) FROM tasks WHERE date BETWEEN :startDate AND :endDate AND isCompleted = 0")
