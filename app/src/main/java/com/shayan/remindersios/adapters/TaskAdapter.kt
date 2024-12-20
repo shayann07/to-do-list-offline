@@ -84,7 +84,15 @@ class TaskAdapter(
         }
 
         override fun areContentsTheSame(oldItem: Tasks, newItem: Tasks): Boolean {
-            return oldItem == newItem
+            return oldItem.title == newItem.title &&
+                    oldItem.notes == newItem.notes &&
+                    oldItem.date == newItem.date &&
+                    oldItem.dateCompleted == newItem.dateCompleted &&
+                    oldItem.time == newItem.time &&
+                    oldItem.timeCategory == newItem.timeCategory &&
+                    oldItem.timestamp == newItem.timestamp &&
+                    oldItem.flag == newItem.flag &&
+                    oldItem.isCompleted == newItem.isCompleted
         }
     }
 
