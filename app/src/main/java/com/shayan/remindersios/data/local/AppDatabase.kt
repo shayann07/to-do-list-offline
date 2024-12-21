@@ -8,7 +8,7 @@ import com.shayan.remindersios.data.local.dao.TasksDao
 import com.shayan.remindersios.data.models.Tasks
 
 
-@Database(entities = [Tasks::class], version = 1, exportSchema = false)
+@Database(entities = [Tasks::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun tasksDao(): TasksDao
