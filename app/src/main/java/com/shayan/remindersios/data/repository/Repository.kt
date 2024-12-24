@@ -14,9 +14,7 @@ import java.util.Locale
 class Repository(context: Context) {
 
     private val taskDao = AppDatabase.getInstance(context).tasksDao()
-
-    // ROOM OPERATIONS
-
+    
     suspend fun getTasksByTitle(title: String): List<Tasks> =
         withContext(Dispatchers.IO) { taskDao.getTasksByTitle(title) }
 
