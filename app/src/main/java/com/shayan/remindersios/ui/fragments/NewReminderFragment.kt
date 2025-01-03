@@ -1,11 +1,13 @@
 package com.shayan.remindersios.ui.fragments
 
 import android.app.TimePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -46,8 +48,12 @@ class NewReminderFragment : Fragment() {
      */
     private fun initializeComponents() {
 
-        binding.cancelButton.setOnClickListener { requireActivity().onBackPressed() }
+        binding.cancelButton.setOnClickListener {
+            hideKeyboard()
+            requireActivity().onBackPressed()
+        }
         binding.addTaskButton.setOnClickListener {
+            hideKeyboard()
             handleAddTask()
         }
         setupDateSwitch()
@@ -73,6 +79,7 @@ class NewReminderFragment : Fragment() {
     private fun setupDateSwitch() {
         binding.dateSwitch.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
+                hideKeyboard()
                 // Set the selectedDate to the current date
                 val currentDate = getCurrentDate()
                 selectedDate = currentDate
@@ -101,7 +108,10 @@ class NewReminderFragment : Fragment() {
 
     private fun setupTimeSwitch() {
         binding.timeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) showTimePicker() else clearTimeSelection()
+            if (isChecked) {
+                hideKeyboard()
+                showTimePicker()
+            } else clearTimeSelection()
         }
     }
 
@@ -120,19 +130,35 @@ class NewReminderFragment : Fragment() {
         val minute = calendar.get(Calendar.MINUTE)
 
         TimePickerDialog(
-            requireContext(), { _, selectedHour, selectedMinute ->
+            requireContext(),
+            android.R.style.Theme_DeviceDefault_Dialog,
+            { _, selectedHour, selectedMinute ->
+
                 Log.d("TimePicker", "Selected Hour in 24-hour format: $hour")
                 selectedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
                 binding.timeDisplay.text = selectedTime
 
                 val timeCategory = determineTimeCategory(selectedHour)
                 showSnackbar("Selected time: $selectedTime($timeCategory)")
-            }, hour, minute, true
-        ).show()
+            },
+            hour,
+            minute,
+            true
+        ).apply {
+            setOnDismissListener {
+                // If no time was selected, un-toggle the time switch
+                if (selectedTime == null) {
+                    binding.timeSwitch.isChecked = false
+                    clearTimeSelection()
+                    hideKeyboard()
+                }
+            }
+        }.show()
     }
 
     private fun setupFlagSwitch() {
         binding.flagSwitch.setOnCheckedChangeListener { _, isChecked ->
+            hideKeyboard()
             isFlagged = isChecked
         }
     }
@@ -205,6 +231,12 @@ class NewReminderFragment : Fragment() {
 
     private fun navigateToHome() {
         findNavController().navigate(R.id.newReminderFragment_to_homeFragment)
+    }
+
+    private fun hideKeyboard() {
+        val imm =
+            requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
     }
 
     override fun onDestroyView() {
