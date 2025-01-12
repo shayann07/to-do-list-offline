@@ -133,7 +133,7 @@ class NewReminderFragment : Fragment() {
             requireContext(),
             android.R.style.Theme_DeviceDefault_Dialog,
             { _, selectedHour, selectedMinute ->
-
+                hideKeyboard()
                 Log.d("TimePicker", "Selected Hour in 24-hour format: $hour")
                 selectedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
                 binding.timeDisplay.text = selectedTime

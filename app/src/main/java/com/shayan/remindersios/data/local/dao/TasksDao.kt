@@ -19,7 +19,7 @@ interface TasksDao {
     @Query("SELECT * FROM tasks WHERE roomTaskId = :roomTaskId")
     suspend fun getTaskByRoomTaskId(roomTaskId: Int): Tasks?
 
-    @Query("SELECT * FROM tasks WHERE title LIKE :title ORDER BY timestamp ASC")
+    @Query("SELECT * FROM tasks WHERE title LIKE '%' || :title || '%' ORDER BY timestamp ASC")
     suspend fun getTasksByTitle(title: String): List<Tasks>
 
     @Query("SELECT * FROM tasks WHERE isCompleted = 0 ORDER BY timestamp ASC")

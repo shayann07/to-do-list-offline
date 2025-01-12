@@ -24,8 +24,8 @@
     </style>
 
 
-    <style name="SearchViewHintStyle">
-        <item name="android:textColorHint">@color/white</item>
+    <style name="SearchViewHintStyle" parent="Widget.AppCompat.SearchView">
+        <item name="android:textColorHint">@color/darker_gray</item>
         <item name="android:textColor">@color/white</item>
     </style>
 
@@ -38,7 +38,7 @@
         <item name="android:padding">8dp</item>
         <item name="android:fontFamily">@font/roboto_bold</item>
         <item name="android:textColor">@android:color/darker_gray</item>
-        <item name="android:textSize">22sp</item>
+        <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
     </style>
 

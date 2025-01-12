@@ -63,7 +63,7 @@ class TaskDetailsFragment : Fragment() {
             tvNotes.setTextColor(
                 ContextCompat.getColor(
                     requireContext(),
-                    if (task.notes.isNullOrBlank()) R.color.darker_gray else R.color.grey
+                    if (task.notes.isNullOrBlank()) R.color.darker_gray else R.color.white
                 )
             )
 

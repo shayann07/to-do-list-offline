@@ -118,6 +118,8 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(context)
                 this.adapter = adapter
+                // Set the StateRestorationPolicy
+                adapter.stateRestorationPolicy = RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
             }
             adapters.add(adapter)
         }
@@ -126,7 +128,14 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     private fun createTaskAdapter(): TaskAdapter {
         return TaskAdapter(completionListener = this,
             itemClickListener = object : TaskAdapter.OnItemClickListener {
-                override fun onItemClick(task: Tasks) {}
+                override fun onItemClick(task: Tasks) {
+                    // Handle item click
+                    Toast.makeText(requireContext(), "Item clicked", Toast.LENGTH_SHORT).show()
+                    val bundle = Bundle().apply {
+                        putParcelable("task", task)
+                    }
+                    findNavController().navigate(R.id.taskDetailsFragment, bundle)
+                }
             },
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
@@ -170,7 +179,7 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             Log.d("ScheduledFragment", "Month: $monthYear, Tasks: ${tasksForMonth.size}")
 
             if (index < adapters.size) {
-                adapters[index].submitList(tasksForMonth)
+                adapters[index].submitList(tasksForMonth.toMutableList())
                 Log.d(
                     "ScheduledFragment",
                     "Submitted list for $monthYear: ${tasksForMonth.size} tasks"

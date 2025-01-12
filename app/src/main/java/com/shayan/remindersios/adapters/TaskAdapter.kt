@@ -59,8 +59,8 @@ class TaskAdapter(
             }
 
             // Update completion state
-            binding.radioButton.isChecked = task.isCompleted
             binding.radioButton.setOnCheckedChangeListener(null) // Prevent triggering listener
+            binding.radioButton.isChecked = task.isCompleted
             binding.radioButton.setOnCheckedChangeListener { _, isChecked ->
                 completionListener.onTaskCompletionToggled(task.roomTaskId, isChecked)
             }

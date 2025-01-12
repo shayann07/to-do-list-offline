@@ -66,10 +66,10 @@
                     android:layout_gravity="center"
                     android:background="@drawable/textview_roundedcorners"
                     android:iconifiedByDefault="false"
+                    android:queryHint="To - Do"
                     android:theme="@style/SearchViewHintStyle"
                     app:closeIcon="@null"
                     app:queryBackground="@android:color/transparent"
-                    app:queryHint="@string/search"
                     app:searchIcon="@drawable/search_icon" />
 
                 <!-- Microphone Icon -->
