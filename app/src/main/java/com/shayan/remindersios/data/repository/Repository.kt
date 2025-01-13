@@ -16,7 +16,7 @@ class Repository(context: Context) {
     private val taskDao = AppDatabase.getInstance(context).tasksDao()
 
     // Room Operations
-    
+
     suspend fun getTasksByTitle(title: String): List<Tasks> =
         withContext(Dispatchers.IO) { taskDao.getTasksByTitle(title) }
 
@@ -41,10 +41,9 @@ class Repository(context: Context) {
 
     fun getTodayTaskCountFlow(todayDate: String): Flow<Int> = taskDao.getTodayTaskCount(todayDate)
 
-    suspend fun getScheduledTasks(startDate: String, endDate: String): List<Tasks> =
-        withContext(Dispatchers.IO) {
-            taskDao.getTasksForDateRange(startDate, endDate)
-        }
+    fun getScheduledTasks(startDate: String, endDate: String): Flow<List<Tasks>> {
+        return taskDao.getTasksForDateRange(startDate, endDate)
+    }
 
     fun getScheduledTasksCountFlow(startDate: String, endDate: String): Flow<Int> =
         taskDao.getTasksCountForDateRange(startDate, endDate)
