@@ -41,41 +41,14 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
     val morningTasksLiveData = MutableLiveData<List<Tasks>>()
     val afternoonTasksLiveData = MutableLiveData<List<Tasks>>()
     val tonightTasksLiveData = MutableLiveData<List<Tasks>>()
+    val tasksByMonth = MutableLiveData<Map<String, List<Tasks>>>(emptyMap())
     val flaggedTasks = MutableLiveData<List<Tasks>>()
     val incompleteTasks = MutableLiveData<List<Tasks>>()
     val completedTasks = MutableLiveData<List<Tasks>>()
     val totalTasks = MutableLiveData<List<Tasks>>()
     val taskDeletionStatus = MutableLiveData<Boolean>()
 
-    // LiveData for tasks grouped by month
-    private val _tasksByMonth = MutableLiveData<Map<String, List<Tasks>>>()
-    val tasksByMonth: LiveData<Map<String, List<Tasks>>> = _tasksByMonth
-
     private var currentSearchQuery: String = ""
-
-    // Fetch scheduled tasks grouped by month
-    fun fetchScheduledTasks() {
-        viewModelScope.launch {
-            val startDate = getCurrentDate()
-            val endDate = getFutureDate(12)
-            repository.getScheduledTasks(startDate, endDate).collect { tasks ->
-                val groupedTasks = tasks.groupBy { task ->
-                    try {
-                        task.date?.let {
-                            SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(
-                                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!
-                            )
-                        } ?: "Unknown"
-                    } catch (e: Exception) {
-                        Log.e("TaskViewModel", "Error parsing date for task: ${task.roomTaskId}", e)
-                        "Unknown"
-                    }
-                }
-                Log.d("TaskViewModel", "Tasks fetched and grouped by month: $groupedTasks")
-                tasksByMonth.postValue(groupedTasks)
-            }
-        }
-    }
 
     // Fetch tasks by title
     fun fetchTasksByTitle(title: String) {
@@ -98,6 +71,30 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                 morningTasksLiveData.postValue(morning)
                 afternoonTasksLiveData.postValue(afternoon)
                 tonightTasksLiveData.postValue(tonight)
+            }
+        }
+    }
+
+    // Fetch scheduled tasks grouped by month
+    fun fetchScheduledTasks() {
+        viewModelScope.launch {
+            val startDate = getCurrentDate()
+            val endDate = getFutureDate(12)
+            repository.getScheduledTasks(startDate, endDate).collect { tasks ->
+                val groupedTasks = tasks.groupBy { task ->
+                    try {
+                        task.date?.let {
+                            SimpleDateFormat("MMMM yyyy", Locale.getDefault()).format(
+                                SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(it)!!
+                            )
+                        } ?: "Unknown"
+                    } catch (e: Exception) {
+                        Log.e("TaskViewModel", "Error parsing date for task: ${task.roomTaskId}", e)
+                        "Unknown"
+                    }
+                }
+                Log.d("TaskViewModel", "Tasks fetched and grouped by month: $groupedTasks")
+                tasksByMonth.postValue(groupedTasks)
             }
         }
     }
