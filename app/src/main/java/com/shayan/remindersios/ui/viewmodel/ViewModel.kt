@@ -6,6 +6,7 @@ import androidx.lifecycle.*
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.data.repository.Repository
 import com.shayan.remindersios.utils.AlarmManagerHelper
+import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -80,7 +81,9 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             val startDate = getCurrentDate()
             val endDate = getFutureDate(12)
-            repository.getScheduledTasks(startDate, endDate).collect { tasks ->
+            repository.getScheduledTasks(startDate, endDate).catch { e ->
+                Log.e("TaskViewModel", "Error fetching tasks", e)
+            }.collect { tasks ->
                 val groupedTasks = tasks.groupBy { task ->
                     try {
                         task.date?.let {
@@ -89,12 +92,14 @@ class ViewModel(application: Application) : AndroidViewModel(application) {
                             )
                         } ?: "Unknown"
                     } catch (e: Exception) {
-                        Log.e("TaskViewModel", "Error parsing date for task: ${task.roomTaskId}", e)
+                        Log.e(
+                            "TaskViewModel", "Error parsing date for task: ${task.roomTaskId}", e
+                        )
                         "Unknown"
                     }
                 }
                 Log.d("TaskViewModel", "Tasks fetched and grouped by month: $groupedTasks")
-                tasksByMonth.postValue(groupedTasks)
+                tasksByMonth.value = groupedTasks
             }
         }
     }

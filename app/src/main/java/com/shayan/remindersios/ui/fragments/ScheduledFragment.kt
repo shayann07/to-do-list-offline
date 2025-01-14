@@ -119,8 +119,8 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
                 layoutManager = LinearLayoutManager(context)
                 this.adapter = adapter
                 // Set the StateRestorationPolicy
-                adapter.stateRestorationPolicy =
-                    RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+//                adapter.stateRestorationPolicy =
+//                    RecyclerView.Adapter.StateRestorationPolicy.ALWAYS
             }
             adapters.add(adapter)
         }
