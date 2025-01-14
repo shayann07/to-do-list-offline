@@ -4,140 +4,105 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/hostFragment">
 
+    <!-- Host Fragment -->
     <fragment
         android:id="@+id/hostFragment"
         android:name="com.shayan.remindersios.ui.fragments.HostFragment"
         android:label="Host">
-
         <action
             android:id="@+id/hostFragment_to_homeFragment"
-            app:destination="@+id/homeFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/homeFragment" />
     </fragment>
 
+    <!-- Home Fragment -->
     <fragment
         android:id="@+id/homeFragment"
         android:name="com.shayan.remindersios.ui.fragments.HomeFragment"
         android:label="Home">
-
+        <!-- Navigation actions -->
         <action
             android:id="@+id/homeFragment_to_newReminderFragment"
-            app:destination="@id/newReminderFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/newReminderFragment" />
         <action
             android:id="@+id/homeFragment_to_todayFragment"
-            app:destination="@id/todayFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/todayFragment" />
         <action
             android:id="@+id/homeFragment_to_scheduledFragment"
-            app:destination="@id/scheduledFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/scheduledFragment" />
         <action
             android:id="@+id/homeFragment_to_allFragment"
-            app:destination="@id/allFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/allFragment" />
         <action
             android:id="@+id/homeFragment_to_flaggedFragment"
-            app:destination="@id/flaggedFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/flaggedFragment" />
         <action
             android:id="@+id/homeFragment_to_completedFragment"
-            app:destination="@id/completedFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/completedFragment" />
         <action
             android:id="@+id/homeFragment_to_iCloudFragment"
-            app:destination="@id/iCloudFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/iCloudFragment" />
         <action
             android:id="@+id/homeFragment_to_outlookFragment"
-            app:destination="@id/outlookFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/outlookFragment" />
     </fragment>
 
+    <!-- New Reminder Fragment -->
     <fragment
         android:id="@+id/newReminderFragment"
         android:name="com.shayan.remindersios.ui.fragments.NewReminderFragment"
         android:label="New Reminder">
         <action
             android:id="@+id/newReminderFragment_to_homeFragment"
-            app:destination="@+id/homeFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
+            app:destination="@id/homeFragment" />
     </fragment>
 
+    <!-- Today Fragment -->
     <fragment
         android:id="@+id/todayFragment"
         android:name="com.shayan.remindersios.ui.fragments.TodayFragment"
         android:label="Today" />
 
+    <!-- Scheduled Fragment -->
     <fragment
         android:id="@+id/scheduledFragment"
         android:name="com.shayan.remindersios.ui.fragments.ScheduledFragment"
         android:label="Scheduled">
         <action
             android:id="@+id/scheduledFragment_to_taskDetailsFragment"
-            app:destination="@id/taskDetailsFragment"
-            app:enterAnim="@android:anim/fade_in"
-            app:exitAnim="@android:anim/fade_out"
-            app:popEnterAnim="@android:anim/fade_in"
-            app:popExitAnim="@android:anim/fade_out" />
-
+            app:destination="@id/taskDetailsFragment" />
     </fragment>
 
+    <!-- All Fragment -->
     <fragment
         android:id="@+id/allFragment"
         android:name="com.shayan.remindersios.ui.fragments.AllFragment"
         android:label="All" />
 
+    <!-- Flagged Fragment -->
     <fragment
         android:id="@+id/flaggedFragment"
         android:name="com.shayan.remindersios.ui.fragments.FlaggedFragment"
         android:label="Flagged" />
 
+    <!-- Completed Fragment -->
     <fragment
         android:id="@+id/completedFragment"
         android:name="com.shayan.remindersios.ui.fragments.CompletedFragment"
         android:label="Completed" />
 
+    <!-- iCloud Fragment -->
     <fragment
         android:id="@+id/iCloudFragment"
         android:name="com.shayan.remindersios.ui.fragments.iCloudFragment"
         android:label="iCloud" />
 
+    <!-- Outlook Fragment -->
     <fragment
         android:id="@+id/outlookFragment"
         android:name="com.shayan.remindersios.ui.fragments.OutlookFragment"
         android:label="Outlook" />
 
+    <!-- Task Details Fragment -->
     <fragment
         android:id="@+id/taskDetailsFragment"
         android:name="com.shayan.remindersios.ui.fragments.TaskDetailsFragment"
