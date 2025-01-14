@@ -1,6 +1,5 @@
 package com.shayan.remindersios.ui.fragments
 
-
 import android.icu.util.Calendar
 import android.os.Bundle
 import android.util.Log
@@ -13,7 +12,6 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.shayan.remindersios.R
 import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
@@ -28,8 +26,14 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
     private lateinit var viewModel: ViewModel
 
-    private val recyclerViews = mutableListOf<RecyclerView>()
-    private val adapters = mutableListOf<TaskAdapter>()
+    private val adapters = List(12) {
+        TaskAdapter(this, this, object : TaskAdapter.OnDeleteClickListener {
+            override fun onDeleteClick(task: Tasks) {
+                viewModel.deleteTask(task.roomTaskId)
+                Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -40,23 +44,31 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d("ScheduledFragment", "onViewCreated called")
 
         binding.backToHomeBtn.setOnClickListener {
             requireActivity().onBackPressed()
         }
 
         setupMonthHeaders()
-        initRecyclerViewsAndAdapters()
+        initRecyclerViews()
 
         viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
-
 
         viewModel.tasksByMonth.observe(viewLifecycleOwner) { tasksByMonth ->
             Log.d("ScheduledFragment", "Observed tasksByMonth: $tasksByMonth")
             updateRecyclerViews(tasksByMonth)
         }
-        viewModel.fetchScheduledTasks()
+
+        findNavController().currentBackStackEntry?.savedStateHandle?.getLiveData<Boolean>("refreshTasks")
+            ?.observe(viewLifecycleOwner) { shouldRefresh ->
+                if (shouldRefresh == true) {
+                    viewModel.fetchScheduledTasks()
+                }
+            }
+
+        if (viewModel.tasksByMonth.value.isNullOrEmpty()) {
+            viewModel.fetchScheduledTasks()
+        }
     }
 
     private fun setupMonthHeaders() {
@@ -86,73 +98,37 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
             val textViewId =
                 resources.getIdentifier("tv${i + 1}", "id", requireContext().packageName)
-            val textView = binding.root.findViewById<TextView>(textViewId)
-            if (textView != null) {
-                textView.text = text
-            } else {
-                Log.e("ScheduledFragment", "Missing TextView for ID: tv${i + 1}")
-            }
+            binding.root.findViewById<TextView>(textViewId)?.text = text
         }
     }
 
-    private fun initRecyclerViewsAndAdapters() {
-        recyclerViews.addAll(
-            listOf(
-                binding.rv1,
-                binding.rv2,
-                binding.rv3,
-                binding.rv4,
-                binding.rv5,
-                binding.rv6,
-                binding.rv7,
-                binding.rv8,
-                binding.rv9,
-                binding.rv10,
-                binding.rv11,
-                binding.rv12
-            )
+    private fun initRecyclerViews() {
+        val recyclerViews = listOf(
+            binding.rv1,
+            binding.rv2,
+            binding.rv3,
+            binding.rv4,
+            binding.rv5,
+            binding.rv6,
+            binding.rv7,
+            binding.rv8,
+            binding.rv9,
+            binding.rv10,
+            binding.rv11,
+            binding.rv12
         )
 
-        recyclerViews.forEachIndexed { _, recyclerView ->
-            val adapter = createTaskAdapter()
+        recyclerViews.forEachIndexed { index, recyclerView ->
+            Log.d("ScheduledFragment", "Initializing RecyclerView for index: $index")
             recyclerView.apply {
                 layoutManager = LinearLayoutManager(context)
-                this.adapter = adapter
-                // Set the StateRestorationPolicy
-//                adapter.stateRestorationPolicy =
-//                    RecyclerView.Adapter.StateRestorationPolicy.ALWAYS
+                adapter = adapters[index]
+                visibility = View.GONE // Hide initially
             }
-            adapters.add(adapter)
         }
-    }
-
-    private fun createTaskAdapter(): TaskAdapter {
-        return TaskAdapter(completionListener = this,
-            itemClickListener = object : TaskAdapter.OnItemClickListener {
-                override fun onItemClick(task: Tasks) {
-                    // Handle item click
-                    Toast.makeText(requireContext(), "Item clicked", Toast.LENGTH_SHORT).show()
-                    val bundle = Bundle().apply {
-                        putParcelable("task", task)
-                    }
-                    findNavController().navigate(R.id.taskDetailsFragment, bundle)
-                }
-            },
-            deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
-                override fun onDeleteClick(task: Tasks) {
-                    // Handle task deletion
-                    viewModel.deleteTask(task.roomTaskId)
-                    Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
-                }
-            })
     }
 
     private fun updateRecyclerViews(tasksByMonth: Map<String, List<Tasks>>) {
-        if (tasksByMonth.isEmpty()) {
-            Log.d("ScheduledFragment", "No tasks available for any month")
-            return
-        }
-
         val calendar = Calendar.getInstance()
         val months = listOf(
             "January",
@@ -175,31 +151,37 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             "${months[monthIndex]} $year"
         }
 
+        val recyclerViews = listOf(
+            binding.rv1,
+            binding.rv2,
+            binding.rv3,
+            binding.rv4,
+            binding.rv5,
+            binding.rv6,
+            binding.rv7,
+            binding.rv8,
+            binding.rv9,
+            binding.rv10,
+            binding.rv11,
+            binding.rv12
+        )
+
         monthsWithYears.forEachIndexed { index, monthYear ->
             val tasksForMonth = tasksByMonth[monthYear] ?: emptyList()
-            Log.d("ScheduledFragment", "Month: $monthYear, Tasks: ${tasksForMonth.size}")
+            Log.d(
+                "ScheduledFragment",
+                "Updating RecyclerView for $monthYear with ${tasksForMonth.size} tasks"
+            )
+            adapters[index].submitList(tasksForMonth.toMutableList())
 
-            if (index < adapters.size) {
-                adapters[index].submitList(tasksForMonth.toMutableList())
-                Log.d(
-                    "ScheduledFragment",
-                    "Submitted list for $monthYear: ${tasksForMonth.size} tasks"
-                )
-                recyclerViews[index].visibility =
-                    if (tasksForMonth.isEmpty()) View.GONE else View.VISIBLE
-
-                // Log the visibility state of the RecyclerView
-                if (recyclerViews[index].visibility == View.VISIBLE) {
-                    Log.d("ScheduledFragment", "RecyclerView for $monthYear is VISIBLE")
-                } else {
-                    Log.d("ScheduledFragment", "RecyclerView for $monthYear is GONE")
-                }
-
-            } else {
-                Log.e("ScheduledFragment", "Adapter index out of bounds: $index")
-            }
+            // Show or hide RecyclerView based on task list
+            recyclerViews[index].visibility =
+                if (tasksForMonth.isEmpty()) View.GONE else View.VISIBLE
+            Log.d(
+                "ScheduledFragment",
+                "RecyclerView for $monthYear visibility: ${recyclerViews[index].visibility}"
+            )
         }
-        Log.d("ScheduledFragment", "Updating RecyclerViews with tasks: $tasksByMonth")
     }
 
     override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
@@ -217,10 +199,6 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             putParcelable("task", task)
         }
         findNavController().navigate(R.id.taskDetailsFragment, bundle)
-    }
-
-    override fun onResume() {
-        super.onResume()
     }
 
     override fun onDestroyView() {

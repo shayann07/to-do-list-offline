@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -29,24 +28,18 @@ class TaskDetailsFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initializeViewModel()
-        setupBackButton()
-        displayTaskDetails()
-    }
-
-    private fun initializeViewModel() {
         viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
-    }
 
-    private fun setupBackButton() {
         binding.backToHomeBtn.setOnClickListener {
+            findNavController().previousBackStackEntry?.savedStateHandle?.set("refreshTasks", true)
             findNavController().navigateUp()
         }
+
+        displayTaskDetails()
     }
 
     private fun displayTaskDetails() {
         val task = arguments?.getParcelable<Tasks>("task")
-
         task?.let {
             bindTaskDetails(it)
         } ?: showTaskNotAvailableMessage()
@@ -54,20 +47,8 @@ class TaskDetailsFragment : Fragment() {
 
     private fun bindTaskDetails(task: Tasks) {
         binding.apply {
-            // Set title
             tvTitle.text = task.title
-
-            // Set notes with styling based on availability
-            tvNotes.text = task.notes.takeIf { !it.isNullOrBlank() }
-                ?: getString(R.string.not_available)
-            tvNotes.setTextColor(
-                ContextCompat.getColor(
-                    requireContext(),
-                    if (task.notes.isNullOrBlank()) R.color.darker_gray else R.color.white
-                )
-            )
-
-            // Set other task details
+            tvNotes.text = task.notes ?: getString(R.string.not_available)
             tvDate.text = task.date ?: getString(R.string.not_available)
             tvTime.text = task.time ?: getString(R.string.not_available)
             tvFlag.text = if (task.flag) getString(R.string.yes) else getString(R.string.no)
@@ -92,3 +73,4 @@ class TaskDetailsFragment : Fragment() {
         _binding = null
     }
 }
+
