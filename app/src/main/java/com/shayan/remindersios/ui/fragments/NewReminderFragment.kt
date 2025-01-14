@@ -3,11 +3,11 @@ package com.shayan.remindersios.ui.fragments
 import android.app.TimePickerDialog
 import android.content.Context
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import androidx.core.widget.doOnTextChanged
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -38,60 +38,51 @@ class NewReminderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         initializeComponents()
         initializeObservers()
     }
 
-    /**
-     * Initialize UI components and set up event listeners.
-     */
     private fun initializeComponents() {
-
-        binding.cancelButton.setOnClickListener {
-            hideKeyboard()
-            requireActivity().onBackPressed()
-        }
-        binding.addTaskButton.setOnClickListener {
-            hideKeyboard()
-            handleAddTask()
-        }
+        setupButtonListeners()
         setupDateSwitch()
         setupTimeSwitch()
         setupFlagSwitch()
+        setupFormValidation()
     }
 
-    /**
-     * Observe LiveData from the ViewModel.
-     */
     private fun initializeObservers() {
         viewModel.taskCreationStatus.observe(viewLifecycleOwner) { isSuccess ->
             if (isSuccess) {
-                showSnackbar("Task created successfully")
+                showSnackbar("Task created successfully!")
                 clearForm()
                 navigateToHome()
             } else {
-                showSnackbar("Failed to create task. Try again.")
+                showSnackbar("Failed to create task. Please try again.")
             }
+        }
+    }
+
+    private fun setupButtonListeners() {
+        binding.cancelButton.setOnClickListener {
+            hideKeyboard()
+            findNavController().popBackStack()
+        }
+
+        binding.addTaskButton.setOnClickListener {
+            hideKeyboard()
+            handleAddTask()
         }
     }
 
     private fun setupDateSwitch() {
         binding.dateSwitch.setOnCheckedChangeListener { _, isChecked ->
+            hideKeyboard()
             if (isChecked) {
-                hideKeyboard()
-                // Set the selectedDate to the current date
                 val currentDate = getCurrentDate()
                 selectedDate = currentDate
-
-                // Update the UI
                 binding.dateDisplay.text = currentDate
-                showSnackbar("Date set to: $currentDate")
-
-                // Show the calendar container
                 binding.calendarContainer.visibility = View.VISIBLE
             } else {
-                // Clear the selected date when the switch is toggled off
                 selectedDate = null
                 binding.dateDisplay.text = ""
                 binding.calendarContainer.visibility = View.GONE
@@ -102,58 +93,14 @@ class NewReminderFragment : Fragment() {
             val calendar = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
             selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
             binding.dateDisplay.text = selectedDate
-            showSnackbar("Selected date: $selectedDate")
         }
     }
 
     private fun setupTimeSwitch() {
         binding.timeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked) {
-                hideKeyboard()
-                showTimePicker()
-            } else clearTimeSelection()
+            hideKeyboard()
+            if (isChecked) showTimePicker() else clearTimeSelection()
         }
-    }
-
-    private fun determineTimeCategory(hour: Int): String {
-        return when (hour) {
-            in 5..11 -> "morning"
-            in 12..17 -> "afternoon"
-            in 18..23, in 0..4 -> "tonight"
-            else -> "unknown"
-        }
-    }
-
-    private fun showTimePicker() {
-        val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
-
-        TimePickerDialog(
-            requireContext(),
-            android.R.style.Theme_DeviceDefault_Dialog,
-            { _, selectedHour, selectedMinute ->
-                hideKeyboard()
-                Log.d("TimePicker", "Selected Hour in 24-hour format: $hour")
-                selectedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
-                binding.timeDisplay.text = selectedTime
-
-                val timeCategory = determineTimeCategory(selectedHour)
-                showSnackbar("Selected time: $selectedTime($timeCategory)")
-            },
-            hour,
-            minute,
-            true
-        ).apply {
-            setOnDismissListener {
-                // If no time was selected, un-toggle the time switch
-                if (selectedTime == null) {
-                    binding.timeSwitch.isChecked = false
-                    clearTimeSelection()
-                    hideKeyboard()
-                }
-            }
-        }.show()
     }
 
     private fun setupFlagSwitch() {
@@ -163,6 +110,35 @@ class NewReminderFragment : Fragment() {
         }
     }
 
+    private fun setupFormValidation() {
+        binding.titleInput.doOnTextChanged { text, _, _, _ ->
+            binding.addTaskButton.isEnabled = !text.isNullOrEmpty()
+        }
+    }
+
+    private fun showTimePicker() {
+        val calendar = Calendar.getInstance()
+        val hour = calendar.get(Calendar.HOUR_OF_DAY)
+        val minute = calendar.get(Calendar.MINUTE)
+
+        TimePickerDialog(
+            requireContext(), { _, selectedHour, selectedMinute ->
+                selectedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
+                binding.timeDisplay.text = selectedTime
+
+                val timeCategory = determineTimeCategory(selectedHour)
+                showSnackbar("Selected time: $selectedTime ($timeCategory)")
+            }, hour, minute, true
+        ).apply {
+            setOnDismissListener {
+                if (selectedTime == null) {
+                    binding.timeSwitch.isChecked = false
+                    clearTimeSelection()
+                }
+            }
+        }.show()
+    }
+
     private fun handleAddTask() {
         val title = binding.titleInput.text.toString().trim()
         val notes = binding.notesInput.text.toString().trim()
@@ -170,26 +146,16 @@ class NewReminderFragment : Fragment() {
         if (title.isEmpty()) {
             showSnackbar("Title is required.")
             return
-        } else {
-            navigateToHome()
         }
 
-        // Automatically set time to current time if selectedDate is today's date and time is null
         if (selectedDate == getCurrentDate() && selectedTime == null) {
-            val calendar = Calendar.getInstance()
-            selectedTime = String.format(
-                "%02d:%02d", calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE)
-            )
+            selectedTime = getCurrentTime()
         }
 
-        // Determine the time category based on the selected time
-        val timeCategory = if (selectedTime != null) {
+        val timeCategory = selectedTime?.let {
             determineTimeCategory(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
-        } else {
-            "tonight" // Default time category if no time is selected
-        }
+        } ?: "tonight"
 
-        // Proceed to save the task
         val task = Tasks(
             title = title,
             notes = notes,
@@ -199,15 +165,8 @@ class NewReminderFragment : Fragment() {
             flag = isFlagged,
             isCompleted = false
         )
+
         viewModel.saveTask(task)
-    }
-
-
-    // Function to get the current date in the same format as selectedDate
-    private fun getCurrentDate(): String {
-        return SimpleDateFormat(
-            "yyyy-MM-dd", Locale.getDefault()
-        ).format(Calendar.getInstance().time)
     }
 
     private fun clearForm() {
@@ -216,6 +175,8 @@ class NewReminderFragment : Fragment() {
         binding.dateDisplay.text = ""
         binding.timeDisplay.text = ""
         binding.flagSwitch.isChecked = false
+        binding.dateSwitch.isChecked = false
+        binding.timeSwitch.isChecked = false
         selectedDate = null
         selectedTime = null
     }
@@ -225,18 +186,30 @@ class NewReminderFragment : Fragment() {
         selectedTime = null
     }
 
-    private fun showSnackbar(message: String) {
-        Snackbar.make(requireView(), message, Snackbar.LENGTH_SHORT).show()
+    private fun getCurrentDate(): String =
+        SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Calendar.getInstance().time)
+
+    private fun getCurrentTime(): String =
+        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Calendar.getInstance().time)
+
+    private fun determineTimeCategory(hour: Int): String = when (hour) {
+        in 5..11 -> "morning"
+        in 12..17 -> "afternoon"
+        else -> "tonight"
     }
 
-    private fun navigateToHome() {
-        findNavController().navigate(R.id.newReminderFragment_to_homeFragment)
+    private fun showSnackbar(message: String) {
+        Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
     }
 
     private fun hideKeyboard() {
         val imm =
             requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(requireView().windowToken, 0)
+    }
+
+    private fun navigateToHome() {
+        findNavController().navigate(R.id.newReminderFragment_to_homeFragment)
     }
 
     override fun onDestroyView() {
