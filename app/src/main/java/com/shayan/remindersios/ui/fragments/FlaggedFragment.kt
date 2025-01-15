@@ -15,8 +15,12 @@ import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentFlaggedBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
 
+/**
+ * Fragment to display and manage flagged tasks.
+ */
 class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
+
     private var _binding: FragmentFlaggedBinding? = null
     private val binding get() = _binding!!
 
@@ -30,44 +34,86 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         return binding.root
     }
 
+    /**
+     * Initializes UI components, sets up the RecyclerView, and observes ViewModel data.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupBackButton()
+        setupRecyclerView()
+        initializeViewModel()
+        observeFlaggedTasks()
+    }
+
+    /**
+     * Configures the back button to navigate to the previous screen.
+     */
+    private fun setupBackButton() {
         binding.backToHomeBtn.setOnClickListener {
             requireActivity().onBackPressed()
         }
+    }
 
-        binding.flaggedRecycler.layoutManager = LinearLayoutManager(requireContext())
-        flaggedAdapter = createTaskAdapter()
-        binding.flaggedRecycler.adapter = flaggedAdapter
-
-        viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
-        viewModel.fetchFlaggedTasks()
-        viewModel.flaggedTasks.observe(viewLifecycleOwner) { flaggedTasks ->
-            flaggedAdapter.submitList(flaggedTasks)
-            binding.flaggedRecycler.visibility =
-                if (flaggedTasks.isNullOrEmpty()) View.GONE else View.VISIBLE
+    /**
+     * Sets up the RecyclerView and initializes the TaskAdapter.
+     */
+    private fun setupRecyclerView() {
+        binding.flaggedRecycler.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            flaggedAdapter = createTaskAdapter()
+            adapter = flaggedAdapter
         }
     }
 
+    /**
+     * Initializes the ViewModel for this fragment.
+     */
+    private fun initializeViewModel() {
+        viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
+        viewModel.fetchFlaggedTasks()
+    }
+
+    /**
+     * Observes flagged tasks from the ViewModel and updates the UI.
+     */
+    private fun observeFlaggedTasks() {
+        viewModel.flaggedTasks.observe(viewLifecycleOwner) { flaggedTasks ->
+            flaggedAdapter.submitList(flaggedTasks)
+            handleEmptyState(flaggedTasks.isNullOrEmpty())
+        }
+    }
+
+    /**
+     * Handles the visibility of the RecyclerView and empty state message.
+     *
+     * @param isEmpty Whether the flagged tasks list is empty.
+     */
+    private fun handleEmptyState(isEmpty: Boolean) {
+        binding.flaggedRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
+    }
+
+    /**
+     * Creates and returns a TaskAdapter with the required listeners.
+     */
     private fun createTaskAdapter(): TaskAdapter {
-        return TaskAdapter(
-            completionListener = this,
+        return TaskAdapter(completionListener = this,
             itemClickListener = this,
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
-                    // Handle task deletion
                     viewModel.deleteTask(task.roomTaskId)
                     Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
                 }
-            }
-        )
+            })
     }
 
-
-    override fun onTaskCompletionToggled(
-        roomTaskId: Int, isCompleted: Boolean
-    ) {
+    /**
+     * Handles toggling the completion status of a task.
+     *
+     * @param roomTaskId The ID of the task to update.
+     * @param isCompleted True if the task is marked as completed, false otherwise.
+     */
+    override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
         viewModel.toggleTaskCompletion(roomTaskId, isCompleted) { success, message ->
             Toast.makeText(
                 requireContext(),
@@ -77,14 +123,21 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         }
     }
 
+    /**
+     * Navigates to the Task Details screen when a task is clicked.
+     *
+     * @param task The clicked task object.
+     */
     override fun onItemClick(task: Tasks) {
-        // Navigate to Task Details Fragment
         val bundle = Bundle().apply {
             putParcelable("task", task)
         }
         findNavController().navigate(R.id.taskDetailsFragment, bundle)
     }
 
+    /**
+     * Cleans up resources when the view is destroyed.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

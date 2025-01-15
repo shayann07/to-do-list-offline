@@ -18,9 +18,11 @@ import com.shayan.remindersios.ui.viewmodel.ViewModel
 class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
 
+    // View binding for this fragment
     private var _binding: FragmentAllBinding? = null
     private val binding get() = _binding!!
 
+    // ViewModel and RecyclerView Adapter
     private lateinit var viewModel: ViewModel
     private lateinit var allAdapter: TaskAdapter
 
@@ -34,18 +36,47 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        // Setup the "Back to Home" button
+        setupBackButton()
+
+        // Initialize RecyclerView and Adapter
+        setupRecyclerView()
+
+        // Initialize ViewModel and set observers
+        initializeViewModel()
+        observeIncompleteTasks()
+    }
+
+    /**
+     * Sets up the back button to navigate to the previous screen.
+     */
+    private fun setupBackButton() {
         binding.backToHomeBtn.setOnClickListener {
             requireActivity().onBackPressed()
         }
+    }
 
-        // Setup RecyclerView
+    /**
+     * Configures the RecyclerView and initializes the TaskAdapter.
+     */
+    private fun setupRecyclerView() {
         binding.allRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         allAdapter = createTaskAdapter()
         binding.allRecyclerView.adapter = allAdapter
+    }
 
-        // ViewModel initialization and observers
+    /**
+     * Initializes the ViewModel and fetches the required data.
+     */
+    private fun initializeViewModel() {
         viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
         viewModel.fetchIncompleteTasks()
+    }
+
+    /**
+     * Observes changes in incomplete tasks and updates the UI accordingly.
+     */
+    private fun observeIncompleteTasks() {
         viewModel.incompleteTasks.observe(viewLifecycleOwner) { incompleteTasks ->
             allAdapter.submitList(incompleteTasks)
             binding.allRecyclerView.visibility =
@@ -53,6 +84,9 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         }
     }
 
+    /**
+     * Handles toggling task completion status and updates the database.
+     */
     override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
         viewModel.toggleTaskCompletion(roomTaskId, isCompleted) { success, message ->
             Toast.makeText(
@@ -63,28 +97,33 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         }
     }
 
+    /**
+     * Creates and returns a new instance of TaskAdapter.
+     */
     private fun createTaskAdapter(): TaskAdapter {
-        return TaskAdapter(
-            completionListener = this,
+        return TaskAdapter(completionListener = this,
             itemClickListener = this,
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
-                    // Handle task deletion
                     viewModel.deleteTask(task.roomTaskId)
                     Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
                 }
-            }
-        )
+            })
     }
 
+    /**
+     * Handles navigation to the Task Details screen.
+     */
     override fun onItemClick(task: Tasks) {
-        // Navigate to Task Details Fragment
         val bundle = Bundle().apply {
             putParcelable("task", task)
         }
         findNavController().navigate(R.id.taskDetailsFragment, bundle)
     }
 
+    /**
+     * Releases resources when the fragment's view is destroyed.
+     */
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

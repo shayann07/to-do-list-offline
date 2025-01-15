@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.navigation.fragment.NavHostFragment
 import com.shayan.remindersios.R
 
@@ -29,6 +30,8 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment.navController
 
         checkAndRequestNotificationPermission()
+
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
     }
 
     private fun checkAndRequestNotificationPermission() {
