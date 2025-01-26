@@ -14,6 +14,8 @@ import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentICloudBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
+import com.shayan.remindersios.utils.PullToRefreshUtil
+import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
 class iCloudFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
@@ -47,11 +49,22 @@ class iCloudFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             binding.icloudRecycler.visibility =
                 if (completedTasks.isNullOrEmpty()) View.GONE else View.VISIBLE
         }
+
+        // Setup Pull-to-Refresh
+        setupPullToRefresh()
+
+    }
+
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Fetch data here
+            viewModel.fetchTotalTasks()
+        }
     }
 
     private fun createTaskAdapter(): TaskAdapter {
-        return TaskAdapter(
-            completionListener = this,
+        return TaskAdapter(completionListener = this,
             itemClickListener = this,
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
@@ -59,8 +72,7 @@ class iCloudFragment : Fragment(), TaskAdapter.TaskCompletionListener,
                     viewModel.deleteTask(task.roomTaskId)
                     Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
                 }
-            }
-        )
+            })
     }
 
 

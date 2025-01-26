@@ -59,6 +59,7 @@
     <string name="not_available">Not available</string>
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="pull_down_arrow">Pull down arrow</string>
 
     <string-array name="months">
         <item>January</item>

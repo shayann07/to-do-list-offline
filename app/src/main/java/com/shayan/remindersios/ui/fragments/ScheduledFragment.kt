@@ -17,6 +17,8 @@ import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentScheduledBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
+import com.shayan.remindersios.utils.PullToRefreshUtil
+import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
 class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
@@ -51,6 +53,8 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
 
         setupMonthHeaders()
         initRecyclerViews()
+        setupPullToRefresh()
+
 
         viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
 
@@ -67,6 +71,14 @@ class ScheduledFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             }
 
         if (viewModel.tasksByMonth.value.isNullOrEmpty()) {
+            viewModel.fetchScheduledTasks()
+        }
+    }
+
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Fetch data here
             viewModel.fetchScheduledTasks()
         }
     }

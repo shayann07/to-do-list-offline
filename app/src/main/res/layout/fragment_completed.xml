@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:animateLayoutChanges="true"
@@ -14,8 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:drawablePadding="6dp"
-        android:gravity="center_vertical"
         android:fontFamily="@font/roboto_regular"
+        android:gravity="center_vertical"
         android:padding="8dp"
         android:text="@string/lists"
         android:textColor="@color/light_blue"
@@ -23,51 +22,58 @@
         android:textStyle="bold"
         app:drawableStartCompat="@drawable/arrow_left" />
 
-    <androidx.core.widget.NestedScrollView
+    <in.srain.cube.views.ptr.PtrClassicFrameLayout
+        android:id="@+id/ultra_ptr"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:animateLayoutChanges="true">
 
-        <LinearLayout
+        <androidx.core.widget.NestedScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:orientation="vertical">
+            android:layout_height="match_parent"
+            android:animateLayoutChanges="true">
 
-            <TextView
-                android:id="@+id/today_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="4dp"
-                android:fontFamily="@font/roboto_bold"
-                android:padding="8dp"
-                android:text="@string/completed"
-                android:textColor="@color/grey"
-                android:textSize="28sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/clear_completed"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginHorizontal="16sp"
-                android:fontFamily="@font/roboto_medium"
-                android:padding="6dp"
-                android:paddingBottom="8dp"
-                android:text="@string/clear"
-                android:textColor="@color/light_blue"
-                android:textSize="18sp"
-                android:textStyle="bold" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/completed_recycler"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                android:layout_marginBottom="16dp"
-                android:visibility="gone" />
+                android:animateLayoutChanges="true"
+                android:orientation="vertical">
 
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+                <TextView
+                    android:id="@+id/today_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16dp"
+                    android:layout_marginBottom="4dp"
+                    android:fontFamily="@font/roboto_bold"
+                    android:padding="8dp"
+                    android:text="@string/completed"
+                    android:textColor="@color/grey"
+                    android:textSize="28sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/clear_completed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginHorizontal="16sp"
+                    android:fontFamily="@font/roboto_medium"
+                    android:padding="6dp"
+                    android:paddingBottom="8dp"
+                    android:text="@string/clear"
+                    android:textColor="@color/light_blue"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/completed_recycler"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:nestedScrollingEnabled="false"
+                    android:visibility="gone" />
+
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+    </in.srain.cube.views.ptr.PtrClassicFrameLayout>
 </LinearLayout>

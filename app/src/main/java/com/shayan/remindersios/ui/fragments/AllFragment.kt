@@ -14,6 +14,8 @@ import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentAllBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
+import com.shayan.remindersios.utils.PullToRefreshUtil
+import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
 class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
@@ -42,9 +44,20 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         // Initialize RecyclerView and Adapter
         setupRecyclerView()
 
+        // Setup Pull-to-Refresh
+        setupPullToRefresh()
+
         // Initialize ViewModel and set observers
         initializeViewModel()
         observeIncompleteTasks()
+    }
+
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Fetch data here
+            viewModel.fetchIncompleteTasks()
+        }
     }
 
     /**

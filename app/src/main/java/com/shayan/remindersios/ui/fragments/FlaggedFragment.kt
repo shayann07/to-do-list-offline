@@ -14,6 +14,8 @@ import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentFlaggedBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
+import com.shayan.remindersios.utils.PullToRefreshUtil
+import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
 /**
  * Fragment to display and manage flagged tasks.
@@ -44,6 +46,16 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         setupRecyclerView()
         initializeViewModel()
         observeFlaggedTasks()
+        // Setup Pull-to-Refresh
+        setupPullToRefresh()
+    }
+
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Fetch data here
+            viewModel.fetchFlaggedTasks()
+        }
     }
 
     /**

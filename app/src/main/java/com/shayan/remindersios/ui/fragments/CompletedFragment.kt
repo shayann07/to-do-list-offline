@@ -14,6 +14,8 @@ import com.shayan.remindersios.adapters.TaskAdapter
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentCompletedBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
+import com.shayan.remindersios.utils.PullToRefreshUtil
+import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
 /**
  * Fragment to display and manage completed tasks.
@@ -45,6 +47,16 @@ class CompletedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         initializeViewModel()
         observeCompletedTasks()
         setupClearCompletedButton()
+        // Setup Pull-to-Refresh
+        setupPullToRefresh()
+    }
+
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Fetch data here
+            viewModel.fetchCompletedTasks()
+        }
     }
 
     /**
