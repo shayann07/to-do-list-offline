@@ -116,7 +116,24 @@ class NewReminderFragment : Fragment() {
         }
     }
 
+    private fun showBlurOverlay() {
+        binding.blurOverlay.apply {
+            alpha = 0f
+            visibility = View.VISIBLE
+            animate().alpha(1f).setDuration(300).start()
+        }
+    }
+
+    private fun hideBlurOverlay() {
+        binding.blurOverlay.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .withEndAction { binding.blurOverlay.visibility = View.GONE }
+            .start()
+    }
+
     private fun showTimePicker() {
+        showBlurOverlay() // Show the blur overlay
         val calendar = Calendar.getInstance()
         val hour = calendar.get(Calendar.HOUR_OF_DAY)
         val minute = calendar.get(Calendar.MINUTE)
@@ -128,13 +145,11 @@ class NewReminderFragment : Fragment() {
 
                 val timeCategory = determineTimeCategory(selectedHour)
                 showSnackbar("Selected time: $selectedTime ($timeCategory)")
+                hideBlurOverlay() // Hide the blur overlay when time is selected
             }, hour, minute, true
         ).apply {
             setOnDismissListener {
-                if (selectedTime == null) {
-                    binding.timeSwitch.isChecked = false
-                    clearTimeSelection()
-                }
+                hideBlurOverlay() // Hide the blur overlay when dialog is dismissed
             }
         }.show()
     }
