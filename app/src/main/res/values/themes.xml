@@ -7,7 +7,7 @@
     </style>
 
     <!-- Define the default app theme -->
-    <style name="AppTheme" parent="Theme.AppCompat.DayNight.DarkActionBar">
+    <style name="AppTheme" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="actionOverflowMenuStyle">@style/OverflowMenu</item>
     </style>
 
