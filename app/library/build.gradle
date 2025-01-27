@@ -1,0 +1,51 @@
+plugins {
+    id 'com.android.library'
+    id 'de.mannodermaus.android-junit5' version '1.8.2.0' apply true
+}
+
+android {
+    namespace 'eightbitlab.com.blurview'
+    compileSdkVersion 34
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 31
+    }
+}
+
+configurations {
+    javadocDeps
+}
+
+dependencies {
+    implementation 'androidx.annotation:annotation:1.9.1'
+    javadocDeps 'androidx.annotation:annotation:1.9.1'
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+}
+
+tasks.register('androidJavadocs', Javadoc) {
+    failOnError = false
+    source = android.sourceSets.main.java.srcDirs
+    ext.androidJar = "${android.sdkDirectory}/platforms/${android.compileSdkVersion}/android.jar"
+    classpath += files(ext.androidJar)
+}
+
+tasks.register('androidJavadocsJar', Jar) {
+    dependsOn androidJavadocs
+    archiveClassifier.set('javadoc') // Replace classifier with archiveClassifier
+    from androidJavadocs.destinationDir
+}
+
+
+tasks.register('androidSourcesJar', Jar) {
+    archiveClassifier.set('sources') // Replace classifier with archiveClassifier
+    from android.sourceSets.main.java.srcDirs
+}

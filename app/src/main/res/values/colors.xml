@@ -9,5 +9,5 @@
     <color name="yellow">#D3FDC007</color>
     <color name="darker_gray">#404040</color>
     <color name="light_blue">#429CF8</color>
-    <color name="transparent_black">#80000000</color>
+    <color name="transparent_black">#00FFFFFF</color>
 </resources>

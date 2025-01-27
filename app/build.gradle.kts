@@ -59,6 +59,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
-    implementation("in.srain.cube:ultra-ptr:1.0.11")
+    implementation(libs.ultra.ptr)
     implementation(libs.androidx.fragment.ktx)
+    implementation(project(":library"))
 }

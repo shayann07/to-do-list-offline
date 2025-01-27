@@ -38,8 +38,25 @@ class NewReminderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initializeBlurView()
         initializeComponents()
         initializeObservers()
+    }
+
+    private fun initializeBlurView() {
+        // Get the root view of the activity
+        val rootView =
+            requireActivity().window.decorView.findViewById<ViewGroup>(android.R.id.content)
+
+        // Optional: Use the window background to handle transparency
+        val windowBackground = requireActivity().window.decorView.background
+
+        // Configure the BlurView
+        binding.blurView.setupWith(rootView) // Set the root view to blur
+            .setFrameClearDrawable(windowBackground) // Optional: Ensure transparency is handled
+            .setBlurRadius(15f) // Set the blur radius (adjust as needed)
+            .setBlurAutoUpdate(true) // Automatically update blur when layout changes
+            .setOverlayColor(requireContext().getColor(R.color.transparent_black)) // Optional: Add an overlay color
     }
 
     private fun initializeComponents() {
@@ -117,19 +134,16 @@ class NewReminderFragment : Fragment() {
     }
 
     private fun showBlurOverlay() {
-        binding.blurOverlay.apply {
-            alpha = 0f
-            visibility = View.VISIBLE
-            animate().alpha(1f).setDuration(300).start()
+        binding.blurView.apply {
+            alpha = 1f // Ensure the blur effect is fully visible
+            visibility = View.VISIBLE // Directly make it visible
         }
     }
 
     private fun hideBlurOverlay() {
-        binding.blurOverlay.animate()
-            .alpha(0f)
-            .setDuration(300)
-            .withEndAction { binding.blurOverlay.visibility = View.GONE }
-            .start()
+        binding.blurView.apply {
+            visibility = View.GONE // Directly hide the blur
+        }
     }
 
     private fun showTimePicker() {

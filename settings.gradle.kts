@@ -9,6 +9,7 @@ pluginManagement {
         }
         mavenCentral()
         gradlePluginPortal()
+        maven { url = uri("https://plugins.gradle.org/m2/") }
     }
 }
 
@@ -22,4 +23,6 @@ dependencyResolutionManagement {
 
 rootProject.name = "Reminders (IOS)"
 include(":app")
- 
+
+include(":library")
+project(":library").projectDir = file("app/library")
