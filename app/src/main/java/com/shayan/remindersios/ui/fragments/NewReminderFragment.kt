@@ -2,15 +2,19 @@ package com.shayan.remindersios.ui.fragments
 
 import android.app.TimePickerDialog
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowManager
 import android.view.inputmethod.InputMethodManager
 import androidx.core.widget.doOnTextChanged
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.Snackbar
 import com.shayan.remindersios.R
 import com.shayan.remindersios.data.models.Tasks
@@ -19,7 +23,7 @@ import com.shayan.remindersios.ui.viewmodel.ViewModel
 import java.text.SimpleDateFormat
 import java.util.*
 
-class NewReminderFragment : Fragment() {
+class NewReminderFragment : BottomSheetDialogFragment() {
 
     private var _binding: FragmentNewReminderBinding? = null
     private val binding get() = _binding!!
@@ -38,92 +42,60 @@ class NewReminderFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        initializeBlurView()
-        initializeComponents()
-        initializeObservers()
+
+        val bottomSheetDialog = dialog as? BottomSheetDialog
+        val behavior = bottomSheetDialog?.behavior
+
+        // Calculate 90% of screen height
+        val displayMetrics = DisplayMetrics().apply {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                requireContext().display?.getRealMetrics(this)
+            } else {
+                val windowManager =
+                    requireContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager
+                windowManager.defaultDisplay.getMetrics(this)
+            }
+        }
+        val screenHeight = displayMetrics.heightPixels
+        val peekHeight = (screenHeight * 0.94f).toInt()
+
+        // Set bottom sheet behavior properties
+        behavior?.let {
+            it.peekHeight = peekHeight
+            it.state = BottomSheetBehavior.STATE_COLLAPSED
+            it.skipCollapsed = false  // Keep this false to maintain collapsed state
+        }
+
+        setupUI()
+        observeViewModel()
     }
 
-    private fun initializeBlurView() {
-        // Get the root view of the activity
-        val rootView =
-            requireActivity().window.decorView.findViewById<ViewGroup>(android.R.id.content)
-
-        // Optional: Use the window background to handle transparency
-        val windowBackground = requireActivity().window.decorView.background
-
-        // Configure the BlurView
-        binding.blurView.setupWith(rootView) // Set the root view to blur
-            .setFrameClearDrawable(windowBackground) // Optional: Ensure transparency is handled
-            .setBlurRadius(15f) // Set the blur radius (adjust as needed)
-            .setBlurAutoUpdate(true) // Automatically update blur when layout changes
-            .setOverlayColor(requireContext().getColor(R.color.transparent_black)) // Optional: Add an overlay color
-    }
-
-    private fun initializeComponents() {
-        setupButtonListeners()
-        setupDateSwitch()
-        setupTimeSwitch()
-        setupFlagSwitch()
+    private fun setupUI() {
+        setupBlurView()
+        setupListeners()
         setupFormValidation()
     }
 
-    private fun initializeObservers() {
-        viewModel.taskCreationStatus.observe(viewLifecycleOwner) { isSuccess ->
-            if (isSuccess) {
-                showSnackbar("Task created successfully!")
-                clearForm()
-                navigateToHome()
-            } else {
-                showSnackbar("Failed to create task. Please try again.")
-            }
-        }
+    private fun setupBlurView() {
+        val rootView =
+            requireActivity().window.decorView.findViewById<ViewGroup>(android.R.id.content)
+        val windowBackground = requireActivity().window.decorView.background
+
+        binding.blurView.setupWith(rootView).setFrameClearDrawable(windowBackground)
+            .setBlurRadius(15f).setBlurAutoUpdate(true)
+            .setOverlayColor(requireContext().getColor(R.color.transparent_black))
     }
 
-    private fun setupButtonListeners() {
-        binding.cancelButton.setOnClickListener {
-            hideKeyboard()
-            findNavController().popBackStack()
-        }
-
-        binding.addTaskButton.setOnClickListener {
-            hideKeyboard()
-            handleAddTask()
-        }
-    }
-
-    private fun setupDateSwitch() {
-        binding.dateSwitch.setOnCheckedChangeListener { _, isChecked ->
-            hideKeyboard()
-            if (isChecked) {
-                val currentDate = getCurrentDate()
-                selectedDate = currentDate
-                binding.dateDisplay.text = currentDate
-                binding.calendarContainer.visibility = View.VISIBLE
-            } else {
-                selectedDate = null
-                binding.dateDisplay.text = ""
-                binding.calendarContainer.visibility = View.GONE
-            }
-        }
-
+    private fun setupListeners() {
+        binding.cancelButton.setOnClickListener { dismissWithKeyboardHidden() }
+        binding.addTaskButton.setOnClickListener { handleAddTask() }
+        binding.dateSwitch.setOnCheckedChangeListener { _, isChecked -> toggleDateSwitch(isChecked) }
+        binding.timeSwitch.setOnCheckedChangeListener { _, isChecked -> toggleTimeSwitch(isChecked) }
+        binding.flagSwitch.setOnCheckedChangeListener { _, isChecked -> isFlagged = isChecked }
         binding.calendarView.setOnDateChangeListener { _, year, month, dayOfMonth ->
-            val calendar = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
-            selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
-            binding.dateDisplay.text = selectedDate
-        }
-    }
-
-    private fun setupTimeSwitch() {
-        binding.timeSwitch.setOnCheckedChangeListener { _, isChecked ->
-            hideKeyboard()
-            if (isChecked) showTimePicker() else clearTimeSelection()
-        }
-    }
-
-    private fun setupFlagSwitch() {
-        binding.flagSwitch.setOnCheckedChangeListener { _, isChecked ->
-            hideKeyboard()
-            isFlagged = isChecked
+            updateSelectedDate(
+                year, month, dayOfMonth
+            )
         }
     }
 
@@ -133,39 +105,53 @@ class NewReminderFragment : Fragment() {
         }
     }
 
-    private fun showBlurOverlay() {
-        binding.blurView.apply {
-            alpha = 1f // Ensure the blur effect is fully visible
-            visibility = View.VISIBLE // Directly make it visible
+    private fun observeViewModel() {
+        viewModel.taskCreationStatus.observe(viewLifecycleOwner) { isSuccess ->
+            val message =
+                if (isSuccess) "Task created successfully!" else "Failed to create task. Please try again."
+            showSnackbar(message)
+            if (isSuccess) {
+                clearForm()
+                dismiss()
+            }
         }
     }
 
-    private fun hideBlurOverlay() {
-        binding.blurView.apply {
-            visibility = View.GONE // Directly hide the blur
+    private fun toggleDateSwitch(isChecked: Boolean) {
+        hideKeyboard()
+        if (isChecked) {
+            selectedDate = getCurrentDate()
+            binding.dateDisplay.text = selectedDate
+            binding.calendarContainer.visibility = View.VISIBLE
+        } else {
+            selectedDate = null
+            binding.dateDisplay.text = ""
+            binding.calendarContainer.visibility = View.GONE
         }
+    }
+
+    private fun toggleTimeSwitch(isChecked: Boolean) {
+        hideKeyboard()
+        if (isChecked) showTimePicker() else clearTimeSelection()
+    }
+
+    private fun updateSelectedDate(year: Int, month: Int, dayOfMonth: Int) {
+        val calendar = Calendar.getInstance().apply { set(year, month, dayOfMonth) }
+        selectedDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(calendar.time)
+        binding.dateDisplay.text = selectedDate
     }
 
     private fun showTimePicker() {
-        showBlurOverlay() // Show the blur overlay
+        showBlurOverlay()
         val calendar = Calendar.getInstance()
-        val hour = calendar.get(Calendar.HOUR_OF_DAY)
-        val minute = calendar.get(Calendar.MINUTE)
-
         TimePickerDialog(
-            requireContext(), { _, selectedHour, selectedMinute ->
-                selectedTime = String.format("%02d:%02d", selectedHour, selectedMinute)
+            requireContext(), { _, hour, minute ->
+                selectedTime = String.format("%02d:%02d", hour, minute)
                 binding.timeDisplay.text = selectedTime
-
-                val timeCategory = determineTimeCategory(selectedHour)
-                showSnackbar("Selected time: $selectedTime ($timeCategory)")
-                hideBlurOverlay() // Hide the blur overlay when time is selected
-            }, hour, minute, true
-        ).apply {
-            setOnDismissListener {
-                hideBlurOverlay() // Hide the blur overlay when dialog is dismissed
-            }
-        }.show()
+                showSnackbar("Selected time: $selectedTime (${determineTimeCategory(hour)})")
+                hideBlurOverlay()
+            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true
+        ).apply { setOnDismissListener { hideBlurOverlay() } }.show()
     }
 
     private fun handleAddTask() {
@@ -185,29 +171,36 @@ class NewReminderFragment : Fragment() {
             determineTimeCategory(Calendar.getInstance().get(Calendar.HOUR_OF_DAY))
         } ?: "tonight"
 
-        val task = Tasks(
-            title = title,
-            notes = notes,
-            date = selectedDate,
-            time = selectedTime,
-            timeCategory = timeCategory,
-            flag = isFlagged,
-            isCompleted = false
+        viewModel.saveTask(
+            Tasks(
+                title = title,
+                notes = notes,
+                date = selectedDate,
+                time = selectedTime,
+                timeCategory = timeCategory,
+                flag = isFlagged,
+                isCompleted = false
+            )
         )
-
-        viewModel.saveTask(task)
     }
 
     private fun clearForm() {
-        binding.titleInput.text.clear()
-        binding.notesInput.text.clear()
-        binding.dateDisplay.text = ""
-        binding.timeDisplay.text = ""
-        binding.flagSwitch.isChecked = false
-        binding.dateSwitch.isChecked = false
-        binding.timeSwitch.isChecked = false
+        binding.apply {
+            titleInput.text.clear()
+            notesInput.text.clear()
+            dateDisplay.text = ""
+            timeDisplay.text = ""
+            flagSwitch.isChecked = false
+            dateSwitch.isChecked = false
+            timeSwitch.isChecked = false
+        }
         selectedDate = null
         selectedTime = null
+    }
+
+    private fun dismissWithKeyboardHidden() {
+        hideKeyboard()
+        dismiss()
     }
 
     private fun clearTimeSelection() {
@@ -234,11 +227,18 @@ class NewReminderFragment : Fragment() {
     private fun hideKeyboard() {
         val imm =
             requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(requireView().windowToken, 0)
+        imm.hideSoftInputFromWindow(view?.windowToken, 0)
     }
 
-    private fun navigateToHome() {
-        findNavController().navigate(R.id.newReminderFragment_to_homeFragment)
+    private fun showBlurOverlay() {
+        binding.blurView.apply {
+            alpha = 1f
+            visibility = View.VISIBLE
+        }
+    }
+
+    private fun hideBlurOverlay() {
+        binding.blurView.visibility = View.GONE
     }
 
     override fun onDestroyView() {
