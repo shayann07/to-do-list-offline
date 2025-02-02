@@ -1,10 +1,20 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?><!--
+    AndroidManifest.xml for RemindersIOS
+    - Declares required permissions (exact alarms, foreground service, notifications)
+    - Configures the application attributes, including backup, RTL support, and theme.
+    - Registers the main activity and broadcast receiver.
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- region Permissions -->
+    <!-- Permission to schedule exact alarms (required for API 31+ for exact alarms) -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Permission to run foreground services -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <!-- Permission to post notifications (required for API 33+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- endregion Permissions -->
 
     <application
         android:allowBackup="true"
@@ -18,15 +28,25 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.RemindersIOS"
         tools:targetApi="35">
+
+        <!-- region Main Activity -->
         <activity
             android:name=".ui.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name="com.shayan.remindersios.receivers.TaskReminderReceiver" />
+        <!-- endregion Main Activity -->
+
+        <!-- region Broadcast Receiver -->
+        <!-- Registers the TaskReminderReceiver to handle scheduled alarm events.
+             Explicitly marked as exported to allow the system to trigger it. -->
+        <receiver
+            android:name="com.shayan.remindersios.receivers.TaskReminderReceiver"
+            android:exported="true" />
+        <!-- endregion Broadcast Receiver -->
+
     </application>
 </manifest>
