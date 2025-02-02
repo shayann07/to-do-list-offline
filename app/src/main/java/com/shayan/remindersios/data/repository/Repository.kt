@@ -8,25 +8,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+import java.util.*
 
+/**
+ * A Repository responsible for all data operations involving [Tasks],
+ * including retrieval, insertion, updating, and deletion in the local database.
+ */
 class Repository(context: Context) {
 
+    // region DAO Reference
     private val taskDao = AppDatabase.getInstance(context).tasksDao()
+    // endregion
 
+    // region Fetch by Title
     /**
-     * Fetch tasks by title (case-insensitive search).
+     * Retrieves a list of [Tasks] that match the given [title], ignoring case.
      */
-    suspend fun getTasksByTitle(title: String): List<Tasks> =
-        withContext(Dispatchers.IO) { taskDao.getTasksByTitle(title) }
+    suspend fun getTasksByTitle(title: String): List<Tasks> = withContext(Dispatchers.IO) {
+        taskDao.getTasksByTitle(title)
+    }
+    // endregion
 
+    // region Save to Database
     /**
-     * Save a task to the local database.
-     * If a task with the same ID already exists, the operation fails.
+     * Saves a [task] to the local database, returning a [Result] indicating success or failure.
+     * If a task with the same [roomTaskId] already exists, it fails.
      */
     suspend fun saveTasksToRoom(task: Tasks): Result<Boolean> = withContext(Dispatchers.IO) {
-        return@withContext try {
+        try {
             val existingTask = taskDao.getTaskByRoomTaskId(task.roomTaskId)
             if (existingTask == null) {
                 taskDao.insertTask(task)
@@ -38,106 +47,135 @@ class Repository(context: Context) {
             Result.failure(e)
         }
     }
+    // endregion
 
+    // region Today Tasks
     /**
-     * Fetch tasks scheduled for today.
+     * Retrieves a list of tasks scheduled for today's date ([todayDate]).
      */
-    suspend fun getTasksForToday(todayDate: String): List<Tasks> =
-        withContext(Dispatchers.IO) { taskDao.getTasksForToday(todayDate) }
+    suspend fun getTasksForToday(todayDate: String): List<Tasks> = withContext(Dispatchers.IO) {
+        taskDao.getTasksForToday(todayDate)
+    }
 
     /**
-     * Observe the count of today's tasks as a Flow.
+     * Returns a [Flow] of the count of today's tasks.
      */
     fun getTodayTaskCountFlow(todayDate: String): Flow<Int> = taskDao.getTodayTaskCount(todayDate)
+    // endregion
 
+    // region Scheduled Tasks
     /**
-     * Fetch tasks scheduled between a date range.
+     * Returns a [Flow] of tasks scheduled between [startDate] and [endDate].
      */
-    fun getScheduledTasks(startDate: String, endDate: String): Flow<List<Tasks>> =
-        taskDao.getTasksForDateRange(startDate, endDate)
+    fun getScheduledTasks(startDate: String, endDate: String): Flow<List<Tasks>> {
+        return taskDao.getTasksForDateRange(startDate, endDate)
+    }
 
     /**
-     * Observe the count of tasks scheduled between a date range.
+     * Returns a [Flow] of the count of tasks scheduled between [startDate] and [endDate].
      */
-    fun getScheduledTasksCountFlow(startDate: String, endDate: String): Flow<Int> =
-        taskDao.getTasksCountForDateRange(startDate, endDate)
+    fun getScheduledTasksCountFlow(startDate: String, endDate: String): Flow<Int> {
+        return taskDao.getTasksCountForDateRange(startDate, endDate)
+    }
+    // endregion
 
+    // region Flagged Tasks
     /**
-     * Fetch flagged tasks from the database.
+     * Retrieves a list of tasks flagged by the user.
      */
-    suspend fun getFlaggedTasks(): List<Tasks> =
-        withContext(Dispatchers.IO) { taskDao.getFlaggedTasks() }
+    suspend fun getFlaggedTasks(): List<Tasks> = withContext(Dispatchers.IO) {
+        taskDao.getFlaggedTasks()
+    }
 
     /**
-     * Observe the count of flagged tasks as a Flow.
+     * Returns a [Flow] of the count of flagged tasks.
      */
     fun getFlaggedTaskCountFlow(): Flow<Int> = taskDao.getFlaggedTaskCount()
+    // endregion
 
+    // region Update Completion
     /**
-     * Update the completion status of a task locally.
+     * Updates the [isCompleted] status of a local task identified by [roomTaskId].
+     * If [isCompleted] is true, sets [dateCompleted] to current date/time; otherwise null.
      */
-    suspend fun updateLocalTaskCompletion(roomTaskId: Int, isCompleted: Boolean) =
+    suspend fun updateLocalTaskCompletion(roomTaskId: Int, isCompleted: Boolean) {
         withContext(Dispatchers.IO) {
             val dateCompleted = if (isCompleted) {
                 SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(Date())
             } else {
                 null
             }
-
             taskDao.updateTaskCompletion(roomTaskId, isCompleted, dateCompleted)
             Log.d(
                 "Repository",
-                "Local task status updated: ID=$roomTaskId, isCompleted=$isCompleted, dateCompleted=$dateCompleted"
+                "Local task status updated: ID=$roomTaskId, " + "isCompleted=$isCompleted, dateCompleted=$dateCompleted"
             )
         }
+    }
+    // endregion
 
+    // region Incomplete Tasks
     /**
-     * Fetch all incomplete tasks.
+     * Retrieves a list of tasks that are not yet completed.
      */
-    suspend fun getIncompleteTasks(): List<Tasks> =
-        withContext(Dispatchers.IO) { taskDao.getIncompleteTasks() }
+    suspend fun getIncompleteTasks(): List<Tasks> = withContext(Dispatchers.IO) {
+        taskDao.getIncompleteTasks()
+    }
 
     /**
-     * Observe the count of incomplete tasks as a Flow.
+     * Returns a [Flow] of the count of incomplete tasks.
      */
     fun getIncompleteTasksCountFlow(): Flow<Int> = taskDao.getIncompleteTaskCount()
+    // endregion
 
+    // region Completed Tasks
     /**
-     * Fetch all completed tasks.
+     * Retrieves a list of tasks that have been completed.
      */
-    suspend fun getCompletedTasks(): List<Tasks> =
-        withContext(Dispatchers.IO) { taskDao.getCompletedTasks() }
+    suspend fun getCompletedTasks(): List<Tasks> = withContext(Dispatchers.IO) {
+        taskDao.getCompletedTasks()
+    }
 
     /**
-     * Observe the count of completed tasks as a Flow.
+     * Returns a [Flow] of the count of completed tasks.
      */
     fun getCompletedTasksCountFlow(): Flow<Int> = taskDao.getCompletedTaskCount()
+    // endregion
 
+    // region All Tasks
     /**
-     * Fetch all tasks from the database.
+     * Retrieves all tasks from the database.
      */
-    suspend fun getTotalTasks(): List<Tasks> =
-        withContext(Dispatchers.IO) { taskDao.getTotalTasks() }
+    suspend fun getTotalTasks(): List<Tasks> = withContext(Dispatchers.IO) {
+        taskDao.getTotalTasks()
+    }
 
     /**
-     * Observe the total task count as a Flow.
+     * Returns a [Flow] of the total task count in the database.
      */
     fun getTotalTasksCountFlow(): Flow<Int> = taskDao.getTotalTaskCount()
+    // endregion
+
+    // region Deletion
+    /**
+     * Deletes a task from the local database by its [roomTaskId].
+     */
+    suspend fun deleteTaskFromRoom(roomTaskId: Int) = withContext(Dispatchers.IO) {
+        taskDao.deleteTaskByRoomTaskId(roomTaskId)
+    }
 
     /**
-     * Delete a task by its ID.
+     * Removes all completed tasks from the local database.
      */
-    suspend fun deleteTaskFromRoom(roomTaskId: Int) =
-        withContext(Dispatchers.IO) { taskDao.deleteTaskByRoomTaskId(roomTaskId) }
+    suspend fun clearAllCompletedTasks() = withContext(Dispatchers.IO) {
+        taskDao.clearAllCompletedTasks()
+    }
 
     /**
-     * Clear all completed tasks from the database.
+     * Clears all tasks from the local database, irrespective of completion status.
      */
-    suspend fun clearAllCompletedTasks() =
-        withContext(Dispatchers.IO) { taskDao.clearAllCompletedTasks() }
-
-    /**
-     * Clear all tasks from the database.
-     */
-    suspend fun clearAllTasks() = withContext(Dispatchers.IO) { taskDao.clearAllTasks() }
+    suspend fun clearAllTasks() = withContext(Dispatchers.IO) {
+        taskDao.clearAllTasks()
+    }
+    // endregion
 }

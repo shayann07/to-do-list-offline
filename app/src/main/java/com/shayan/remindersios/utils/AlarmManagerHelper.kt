@@ -7,22 +7,32 @@ import android.content.Intent
 import android.icu.util.Calendar
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.receivers.TaskReminderReceiver
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+/**
+ * An object to handle scheduling and cancelling task reminders with [AlarmManager].
+ */
 object AlarmManagerHelper {
 
+    private const val TAG = "AlarmManagerHelper"
+
+    // region Schedule a Task Reminder
     /**
-     * Schedules a reminder for a task in the AlarmManager.
-     * @param context: Application context.
-     * @param task: Task object representing the task data.
+     * Schedules an alarm for the given [task], if [task.date] is set.
+     * Uses different AlarmManager APIs depending on the Android version.
+     *
+     * @param context Application [Context].
+     * @param task The [Tasks] object containing date/time info to schedule.
      */
     fun scheduleTaskReminder(context: Context, task: Tasks) {
+        // If no date is set, we can't schedule anything
         if (task.date.isNullOrEmpty()) return
 
-        // Handle permission for exact alarms (Android 12+)
+        // Handle exact alarms permission for Android 12+ (S)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             val alarmManager = context.getSystemService(AlarmManager::class.java)
             if (alarmManager?.canScheduleExactAlarms() == false) {
@@ -31,64 +41,69 @@ object AlarmManagerHelper {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK
                     }
                     context.startActivity(intent)
+                    // Could log or inform the user that the permission is required
+                    Log.w(TAG, "Cannot schedule exact alarms; user prompted to allow it.")
                     return
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e(TAG, "Failed to request exact alarm permission: ${e.message}", e)
                     return
                 }
             }
         }
 
+        // Prepare the AlarmManager
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-        // Parse the task date string
+        // Parse the task's date
         val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-        val taskDate = dateFormat.parse(task.date) ?: return
+        val taskDate = try {
+            dateFormat.parse(task.date) ?: return
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to parse task date: ${task.date}", e)
+            return
+        }
 
-        // Set up the Calendar instance to hold the reminder time
+        // Build a Calendar for the alarm trigger time
         val calendar = Calendar.getInstance().apply {
             time = taskDate
-
-            // Check if the time field is provided
             if (task.time.isNullOrEmpty()) {
-                // If time is null, default to 11:00 AM
+                // Default time is 11:00 AM if not specified
                 set(Calendar.HOUR_OF_DAY, 11)
                 set(Calendar.MINUTE, 0)
             } else {
-                // If a time is provided, parse the time and set it
                 try {
                     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
                     val taskTime = timeFormat.parse(task.time)
-
                     taskTime?.let {
                         set(Calendar.HOUR_OF_DAY, it.hours)
                         set(Calendar.MINUTE, it.minutes)
                     }
                 } catch (e: Exception) {
-                    e.printStackTrace()
+                    Log.e(TAG, "Failed to parse task time: ${task.time}", e)
                     return
                 }
             }
             set(Calendar.SECOND, 0)
         }
 
-        // Skip scheduling if the alarm time is already in the past
-        if (calendar.timeInMillis < System.currentTimeMillis()) return
+        // If the reminder time is in the past, skip scheduling
+        if (calendar.timeInMillis < System.currentTimeMillis()) {
+            Log.d(TAG, "Skipping scheduling: alarm time is in the past.")
+            return
+        }
 
-        // Prepare the intent to trigger the receiver
+        // Create broadcast intent to fire the reminder
         val intent = Intent(context, TaskReminderReceiver::class.java).apply {
             putExtra("taskId", task.roomTaskId)
             putExtra("taskTitle", task.title)
         }
 
         val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            task.roomTaskId.hashCode(),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            context, task.roomTaskId.hashCode(), // Unique requestCode
+            intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        // Schedule the alarm
+        // Schedule the alarm based on API level
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             // For API 23+ (Doze Mode), use setExactAndAllowWhileIdle
             alarmManager.setExactAndAllowWhileIdle(
@@ -100,12 +115,16 @@ object AlarmManagerHelper {
                 AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent
             )
         }
+        Log.d(TAG, "Alarm scheduled for ${task.title} at ${calendar.time}")
     }
+    // endregion
 
+    // region Cancel a Task Reminder
     /**
-     * Cancels a previously scheduled alarm for a task.
-     * @param context: Application context.
-     * @param taskId: Unique task ID to cancel the reminder.
+     * Cancels a previously scheduled alarm for the given [taskId].
+     *
+     * @param context The application [Context].
+     * @param taskId The unique task ID used when scheduling the alarm.
      */
     fun cancelTaskReminder(context: Context, taskId: String) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -119,5 +138,7 @@ object AlarmManagerHelper {
         )
 
         alarmManager.cancel(pendingIntent)
+        Log.d(TAG, "Alarm canceled for taskId=$taskId")
     }
+    // endregion
 }

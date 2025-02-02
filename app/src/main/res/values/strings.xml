@@ -60,6 +60,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="pull_down_arrow">Pull down arrow</string>
+    <string name="no_reminders">No Reminders</string>
 
     <string-array name="months">
         <item>January</item>

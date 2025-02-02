@@ -156,4 +156,16 @@
             </androidx.core.widget.NestedScrollView>
         </in.srain.cube.views.ptr.PtrClassicFrameLayout>
     </LinearLayout>
+
+    <TextView
+        android:id="@+id/no_RemindersTV"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:fontFamily="@font/roboto_regular"
+        android:text="@string/no_reminders"
+        android:textColor="@color/lighter_grey"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:visibility="visible" />
 </RelativeLayout>

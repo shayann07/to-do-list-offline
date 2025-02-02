@@ -7,42 +7,53 @@ import androidx.room.RoomDatabase
 import com.shayan.remindersios.data.local.dao.TasksDao
 import com.shayan.remindersios.data.models.Tasks
 
-@Database(entities = [Tasks::class], version = 2, exportSchema = false)
+/**
+ * The main Room database for the application.
+ * Stores and manages all [Tasks] entities.
+ */
+@Database(
+    entities = [Tasks::class], version = 2, exportSchema = false
+)
 abstract class AppDatabase : RoomDatabase() {
 
+    // region DAO Accessors
+    /**
+     * Provides access to the [TasksDao] for performing database operations on [Tasks].
+     */
     abstract fun tasksDao(): TasksDao
+    // endregion
 
+    // region Companion Object (Singleton)
     companion object {
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
         /**
-         * Retrieves the singleton instance of the database.
-         * Ensures only one instance of the database is created across the application.
+         * Retrieves the singleton instance of the database, creating it if necessary.
+         * Ensures only one instance of the database is created across the entire application.
          *
-         * @param context Application context to initialize the database.
-         * @return The [AppDatabase] instance.
+         * @param context The [Context] used to build or retrieve the [AppDatabase].
+         * @return The singleton [AppDatabase] instance.
          */
         fun getInstance(context: Context): AppDatabase {
+            // Double-checked locking to prevent multiple instances
             return INSTANCE ?: synchronized(this) {
-                // Create the database instance if it doesn't already exist
                 INSTANCE ?: buildDatabase(context).also { INSTANCE = it }
             }
         }
 
         /**
-         * Builds the database with the specified configuration.
-         * Configurations include handling version mismatches and enabling migrations.
-         *
-         * @param context Application context.
-         * @return A new [AppDatabase] instance.
+         * Builds a new [AppDatabase] instance with the required configuration.
+         * Uses `fallbackToDestructiveMigration()` to reset the DB if version mismatches occur.
          */
         private fun buildDatabase(context: Context): AppDatabase {
             return Room.databaseBuilder(
                 context.applicationContext, AppDatabase::class.java, "app_database"
             )
-                .fallbackToDestructiveMigration() // Clears and rebuilds the database on version mismatch
-                .build()
+                // Clears and rebuilds the database on version mismatch.
+                // In production, consider using proper migration strategies.
+                .fallbackToDestructiveMigration().build()
         }
     }
+    // endregion
 }

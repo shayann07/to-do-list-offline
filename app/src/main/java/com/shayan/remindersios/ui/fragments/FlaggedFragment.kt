@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -15,6 +14,7 @@ import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentFlaggedBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
 import com.shayan.remindersios.utils.PullToRefreshUtil
+import com.shayan.remindersios.utils.shortToast
 import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
 /**
@@ -23,12 +23,17 @@ import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
 
+    // region View Binding
     private var _binding: FragmentFlaggedBinding? = null
     private val binding get() = _binding!!
+    // endregion
 
+    // region ViewModel & Adapter
     private lateinit var viewModel: ViewModel
     private lateinit var flaggedAdapter: TaskAdapter
+    // endregion
 
+    // region Lifecycle Methods
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -37,33 +42,50 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     }
 
     /**
-     * Initializes UI components, sets up the RecyclerView, and observes ViewModel data.
+     * Initializes UI components, ViewModel, and observes data.
      */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        setupBackButton()
-        setupRecyclerView()
-        initializeViewModel()
-        observeFlaggedTasks()
-        // Setup Pull-to-Refresh
-        setupPullToRefresh()
-    }
+        // 1) Initialize the ViewModel
+        initViewModel()
 
-    private fun setupPullToRefresh() {
-        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
-        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
-            // Fetch data here
-            viewModel.fetchFlaggedTasks()
-        }
+        // 2) Setup UI (RecyclerView, Back Button, Pull-To-Refresh, etc.)
+        setupUI()
+
+        // 3) Observe flagged tasks
+        observeFlaggedTasks()
     }
 
     /**
-     * Configures the back button to navigate to the previous screen.
+     * Cleans up resources when the view is destroyed.
+     */
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+    // endregion
+
+    // region ViewModel
+    private fun initViewModel() {
+        viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
+        viewModel.fetchFlaggedTasks()
+    }
+    // endregion
+
+    // region UI Setup
+    private fun setupUI() {
+        setupBackButton()
+        setupRecyclerView()
+        setupPullToRefresh()
+    }
+
+    /**
+     * Configures the back button to navigate up in the NavController stack.
      */
     private fun setupBackButton() {
         binding.backToHomeBtn.setOnClickListener {
-            requireActivity().onBackPressed()
+            findNavController().navigateUp()
         }
     }
 
@@ -79,13 +101,18 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     }
 
     /**
-     * Initializes the ViewModel for this fragment.
+     * Configures pull-to-refresh functionality using Ultra Pull-To-Refresh library.
      */
-    private fun initializeViewModel() {
-        viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
-        viewModel.fetchFlaggedTasks()
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Re-fetch flagged tasks
+            viewModel.fetchFlaggedTasks()
+        }
     }
+    // endregion
 
+    // region Observers
     /**
      * Observes flagged tasks from the ViewModel and updates the UI.
      */
@@ -97,14 +124,15 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     }
 
     /**
-     * Handles the visibility of the RecyclerView and empty state message.
-     *
-     * @param isEmpty Whether the flagged tasks list is empty.
+     * Controls visibility of the RecyclerView based on data being empty or not.
      */
     private fun handleEmptyState(isEmpty: Boolean) {
         binding.flaggedRecycler.visibility = if (isEmpty) View.GONE else View.VISIBLE
+        binding.noRemindersTV.visibility = if (isEmpty) View.VISIBLE else View.GONE
     }
+    // endregion
 
+    // region Adapter & Callbacks
     /**
      * Creates and returns a TaskAdapter with the required listeners.
      */
@@ -114,44 +142,27 @@ class FlaggedFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
                     viewModel.deleteTask(task.roomTaskId)
-                    Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
+                    context?.shortToast("Task deleted")
                 }
             })
     }
 
     /**
      * Handles toggling the completion status of a task.
-     *
-     * @param roomTaskId The ID of the task to update.
-     * @param isCompleted True if the task is marked as completed, false otherwise.
      */
     override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
         viewModel.toggleTaskCompletion(roomTaskId, isCompleted) { success, message ->
-            Toast.makeText(
-                requireContext(),
-                if (success) "Task updated" else "Failed to update: $message",
-                Toast.LENGTH_SHORT
-            ).show()
+            val toastMessage = if (success) "Task updated" else "Failed to update: $message"
+            context?.shortToast(toastMessage)
         }
     }
 
     /**
      * Navigates to the Task Details screen when a task is clicked.
-     *
-     * @param task The clicked task object.
      */
     override fun onItemClick(task: Tasks) {
-        val bundle = Bundle().apply {
-            putParcelable("task", task)
-        }
+        val bundle = Bundle().apply { putParcelable("task", task) }
         findNavController().navigate(R.id.taskDetailsFragment, bundle)
     }
-
-    /**
-     * Cleans up resources when the view is destroyed.
-     */
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
+    // endregion
 }

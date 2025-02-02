@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
@@ -15,19 +14,26 @@ import com.shayan.remindersios.data.models.Tasks
 import com.shayan.remindersios.databinding.FragmentAllBinding
 import com.shayan.remindersios.ui.viewmodel.ViewModel
 import com.shayan.remindersios.utils.PullToRefreshUtil
+import com.shayan.remindersios.utils.shortToast
 import `in`.srain.cube.views.ptr.PtrClassicFrameLayout
 
+/**
+ * A Fragment displaying all incomplete tasks with pull-to-refresh functionality.
+ */
 class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
     TaskAdapter.OnItemClickListener {
 
-    // View binding for this fragment
+    // region View Binding
     private var _binding: FragmentAllBinding? = null
     private val binding get() = _binding!!
+    // endregion
 
-    // ViewModel and RecyclerView Adapter
+    // region ViewModel and Adapter
     private lateinit var viewModel: ViewModel
     private lateinit var allAdapter: TaskAdapter
+    // endregion
 
+    // region Lifecycle Methods
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
@@ -35,37 +41,52 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
         return binding.root
     }
 
+    /**
+     * Called immediately after onCreateView(). Here we initialize the ViewModel, setup the UI,
+     * and start observing LiveData.
+     */
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // Setup the "Back to Home" button
-        setupBackButton()
+        // 1) Initialize ViewModel
+        initViewModel()
 
-        // Initialize RecyclerView and Adapter
-        setupRecyclerView()
+        // 2) Setup UI (RecyclerView, Back Button, Pull-to-Refresh)
+        setupUI()
 
-        // Setup Pull-to-Refresh
-        setupPullToRefresh()
-
-        // Initialize ViewModel and set observers
-        initializeViewModel()
+        // 3) Observe the incomplete tasks LiveData
         observeIncompleteTasks()
     }
 
-    private fun setupPullToRefresh() {
-        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
-        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
-            // Fetch data here
-            viewModel.fetchIncompleteTasks()
-        }
+    /**
+     * Release resources when the view is destroyed.
+     */
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+    }
+    // endregion
+
+    // region ViewModel Setup
+    private fun initViewModel() {
+        viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
+        viewModel.fetchIncompleteTasks()
+    }
+    // endregion
+
+    // region UI Setup
+    private fun setupUI() {
+        setupBackButton()
+        setupRecyclerView()
+        setupPullToRefresh()
     }
 
     /**
-     * Sets up the back button to navigate to the previous screen.
+     * Back button handler. Uses NavController's navigateUp for better back-stack handling.
      */
     private fun setupBackButton() {
         binding.backToHomeBtn.setOnClickListener {
-            requireActivity().onBackPressed()
+            findNavController().navigateUp()
         }
     }
 
@@ -73,43 +94,64 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
      * Configures the RecyclerView and initializes the TaskAdapter.
      */
     private fun setupRecyclerView() {
-        binding.allRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        allAdapter = createTaskAdapter()
-        binding.allRecyclerView.adapter = allAdapter
+        binding.allRecyclerView.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            allAdapter = createTaskAdapter()
+            adapter = allAdapter
+        }
     }
 
     /**
-     * Initializes the ViewModel and fetches the required data.
+     * Setup Pull-to-Refresh using Ultra Pull-To-Refresh library.
      */
-    private fun initializeViewModel() {
-        viewModel = ViewModelProvider(requireActivity())[ViewModel::class.java]
-        viewModel.fetchIncompleteTasks()
+    private fun setupPullToRefresh() {
+        val ptrFrameLayout = binding.root.findViewById<PtrClassicFrameLayout>(R.id.ultra_ptr)
+        PullToRefreshUtil.setupUltraPullToRefresh(ptrFrameLayout) {
+            // Reload the incomplete tasks
+            viewModel.fetchIncompleteTasks()
+        }
     }
+    // endregion
 
+    // region Observers
     /**
-     * Observes changes in incomplete tasks and updates the UI accordingly.
+     * Observes changes in the incomplete tasks LiveData and updates the UI.
      */
     private fun observeIncompleteTasks() {
         viewModel.incompleteTasks.observe(viewLifecycleOwner) { incompleteTasks ->
             allAdapter.submitList(incompleteTasks)
             binding.allRecyclerView.visibility =
                 if (incompleteTasks.isNullOrEmpty()) View.GONE else View.VISIBLE
+            binding.noRemindersTV.visibility =
+                if (incompleteTasks.isNullOrEmpty()) View.VISIBLE else View.GONE
+        }
+    }
+    // endregion
+
+    // region TaskAdapter Callbacks
+    /**
+     * Called when the user toggles a task's completion status.
+     */
+    override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
+        viewModel.toggleTaskCompletion(roomTaskId, isCompleted) { success, message ->
+            if (success) {
+                context?.shortToast("Task updated")
+            } else {
+                context?.shortToast("Failed to update: $message")
+            }
         }
     }
 
     /**
-     * Handles toggling task completion status and updates the database.
+     * Called when a task item is clicked to view details.
      */
-    override fun onTaskCompletionToggled(roomTaskId: Int, isCompleted: Boolean) {
-        viewModel.toggleTaskCompletion(roomTaskId, isCompleted) { success, message ->
-            Toast.makeText(
-                requireContext(),
-                if (success) "Task updated" else "Failed to update: $message",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+    override fun onItemClick(task: Tasks) {
+        val bundle = Bundle().apply { putParcelable("task", task) }
+        findNavController().navigate(R.id.taskDetailsFragment, bundle)
     }
+    // endregion
 
+    // region Adapter Creation
     /**
      * Creates and returns a new instance of TaskAdapter.
      */
@@ -119,26 +161,9 @@ class AllFragment : Fragment(), TaskAdapter.TaskCompletionListener,
             deleteClickListener = object : TaskAdapter.OnDeleteClickListener {
                 override fun onDeleteClick(task: Tasks) {
                     viewModel.deleteTask(task.roomTaskId)
-                    Toast.makeText(requireContext(), "Task deleted", Toast.LENGTH_SHORT).show()
+                    context?.shortToast("Task deleted")
                 }
             })
     }
-
-    /**
-     * Handles navigation to the Task Details screen.
-     */
-    override fun onItemClick(task: Tasks) {
-        val bundle = Bundle().apply {
-            putParcelable("task", task)
-        }
-        findNavController().navigate(R.id.taskDetailsFragment, bundle)
-    }
-
-    /**
-     * Releases resources when the fragment's view is destroyed.
-     */
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
+    // endregion
 }
