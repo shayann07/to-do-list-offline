@@ -1,14 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="my_gray">#242426</color>
-    <color name="grey">#454547</color>
-    <color name="orange">#E6F24336</color>
-    <color name="dark_yellow">#FF9800</color>
-    <color name="yellow">#D3FDC007</color>
-    <color name="darker_gray">#404040</color>
-    <color name="light_blue">#429CF8</color>
+
+    <!-- Basic Colors -->
+    <color name="black">#FF000000</color>    <!-- Fully opaque black -->
+    <color name="white">#FFFFFFFF</color>    <!-- Fully opaque white -->
+
+    <!-- Shades of Gray -->
+    <!--
+         If you intend these grays to be fully opaque, it’s clearer to include the alpha channel (FF)
+         Note: "my_gray" is a custom gray color.
+    -->
+    <color name="my_gray">#FF242426</color>
+    <color name="grey">#FF454547</color>
+    <color name="darker_gray">#FF404040</color>
+    <color name="lighter_grey">#A9AAAAAA</color> <!-- Slightly transparent gray -->
+
+    <!-- Accent Colors -->
+    <!-- Note: Some accent colors have a custom alpha for effect -->
+    <color name="orange">#E6F24336</color>        <!-- Slightly transparent orange -->
+    <color name="dark_yellow">#FFFF9800</color>    <!-- Fully opaque dark yellow -->
+    <color name="yellow">#D3FDC007</color>         <!-- Semi-transparent yellow -->
+    <color name="light_blue">#FF429CF8</color>       <!-- Fully opaque light blue -->
+
+    <!-- Transparent Colors -->
+    <!--
+         The color below is labeled "transparent_black" but its value (#00FFFFFF) represents
+         a fully transparent white. If your intent was a transparent black overlay, consider using
+         something like "#66000000" for 40% opacity black.
+    -->
     <color name="transparent_black">#00FFFFFF</color>
-    <color name="lighter_grey">#A9AAAAAA</color>
+
 </resources>

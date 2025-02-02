@@ -1,9 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+
+    <!-- ===================== Application Info ===================== -->
     <string name="app_name">Reminders</string>
+
+    <!-- ===================== Navigation & Menu ===================== -->
     <string name="edit_lists">Edit Lists</string>
     <string name="templates">Templates</string>
     <string name="search">Search</string>
-    <string name="_0">0</string>
+    <string name="dropdown_menu">Dropdown Menu</string>
+    <string name="lists">Lists</string>
+
+    <!-- ===================== Home Screen Labels ===================== -->
     <string name="today">Today</string>
     <string name="schedule">Schedule</string>
     <string name="all">All</string>
@@ -14,7 +22,8 @@
     <string name="tasks">Tasks</string>
     <string name="new_reminder">New Reminder</string>
     <string name="add_list">Add List</string>
-    <string name="dropdown_menu">Dropdown Menu</string>
+
+    <!-- ===================== Authentication & Onboarding ===================== -->
     <string name="dont_have_an_account">Don\'t have an account?</string>
     <string name="get_started">Get Started</string>
     <string name="welcome_back">Welcome Back</string>
@@ -26,7 +35,6 @@
     <string name="or_sign_in_with">Or sign in with</string>
     <string name="google">Google</string>
     <string name="facebook">Facebook</string>
-    <string name="lists">Lists</string>
     <string name="name">Name</string>
     <string name="email">Email</string>
     <string name="confirm_password">Confirm Password</string>
@@ -34,13 +42,18 @@
     <string name="already_have_an_account">Already have an account?</string>
     <string name="sign_up">Sign Up</string>
     <string name="or_sign_up_with">Or sign up with</string>
-    <string name="first_name">first name</string>
-    <string name="last_name">last name</string>
-    <string name="phone_number">phone number</string>
+    <string name="first_name">First Name</string>
+    <string name="last_name">Last Name</string>
+    <string name="phone_number">Phone Number</string>
+
+    <!-- ===================== Miscellaneous ===================== -->
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="cancel">Cancel</string>
     <string name="add">Add</string>
+    <string name="_0">0</string>
+
+    <!-- ===================== Task Details & Related ===================== -->
     <string name="title">Title</string>
     <string name="notes">Notes</string>
     <string name="details">Details</string>
@@ -48,20 +61,23 @@
     <string name="time">Time</string>
     <string name="flag">Flag</string>
     <string name="location">Location</string>
+    <string name="reminder_title">Reminder Title</string>
+    <string name="not_available">Not available</string>
+
+    <!-- ===================== Time-Related Labels ===================== -->
     <string name="morning">Morning</string>
     <string name="afternoon">Afternoon</string>
     <string name="tonight">Tonight</string>
-    <string name="reminder_title">Reminder Title</string>
     <string name="_9_00_am">9:00 AM</string>
     <string name="clear">•   Clear</string>
     <string name="scheduled">Scheduled</string>
     <string name="abc">Scheduled</string>
-    <string name="not_available">Not available</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
     <string name="pull_down_arrow">Pull down arrow</string>
     <string name="no_reminders">No Reminders</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
 
+    <!-- ===================== String Array: Months ===================== -->
     <string-array name="months">
         <item>January</item>
         <item>February</item>
